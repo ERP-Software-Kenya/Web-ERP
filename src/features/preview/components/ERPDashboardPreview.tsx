@@ -5,7 +5,26 @@ import {
   CreditCard, Bell, Activity, Users, Settings,
   ChevronRight, ChevronDown, Sun, CheckCircle2, Circle
 } from 'lucide-react';
-import './preview-override.css';
+import { motion, AnimatePresence } from 'framer-motion';
+import '../styles/preview-override.css';
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: { opacity: 1, transition: { staggerChildren: 0.1 } }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 15 },
+  show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 24 } }
+};
+
+const barVariants = {
+  hidden: { height: 0 },
+  show: (height: string) => ({
+    height,
+    transition: { type: 'spring', stiffness: 100, damping: 15 }
+  })
+};
 
 interface ERPDashboardPreviewProps {
   orgName: string;
@@ -101,9 +120,14 @@ export default function ERPDashboardPreview({ orgName, activeModules = [], curre
           <span className="erp-org-name">{displayName}</span>
         </div>
 
-        <div className="erp-sidebar-body custom-scrollbar">
-          {NAV_GROUPS.map(group => (
-            <div key={group.label} className="erp-nav-section">
+        <motion.div 
+          className="erp-sidebar-body custom-scrollbar"
+          variants={containerVariants}
+          initial="hidden"
+          animate="show"
+        >
+          {NAV_GROUPS.map((group) => (
+            <motion.div key={group.label} className="erp-nav-section" variants={itemVariants}>
               <p className="erp-nav-label">{group.label}</p>
               <nav style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                 {group.items.map((item) => {
@@ -120,87 +144,129 @@ export default function ERPDashboardPreview({ orgName, activeModules = [], curre
                   else if (isHighlighted) className += " highlighted";
 
                   return (
-                    <div key={item.id} className={className}>
+                    <motion.div 
+                      key={item.id} 
+                      className={className}
+                      whileTap={{ scale: 0.95 }}
+                    >
                       <Icon size={18} />
                       <span style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         {item.label}
                       </span>
                       {isActive && <ChevronRight size={14} style={{ opacity: 0.5 }} />}
-                    </div>
+                    </motion.div>
                   );
                 })}
               </nav>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </aside>
 
       {/* Main content */}
       <div className="erp-main">
         {/* Topbar mimicking ERP-Client Topbar.tsx */}
         <header className="erp-topbar">
-          <button style={{ background: 'transparent', border: 'none', color: 'hsl(215, 20.2%, 65.1%)', display: 'flex' }}>
+          <motion.button 
+            whileHover={{ scale: 1.1, rotate: 15 }}
+            whileTap={{ scale: 0.9 }}
+            style={{ background: 'transparent', border: 'none', color: 'hsl(215, 20.2%, 65.1%)', display: 'flex', cursor: 'pointer' }}
+          >
             <Sun size={20} />
-          </button>
+          </motion.button>
           
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', paddingLeft: '12px', borderLeft: '1px solid hsl(217.2, 32.6%, 17.5%)' }}>
+          <motion.div 
+            whileHover={{ opacity: 0.8 }}
+            style={{ display: 'flex', alignItems: 'center', gap: '10px', paddingLeft: '12px', borderLeft: '1px solid hsl(217.2, 32.6%, 17.5%)', cursor: 'pointer' }}
+          >
             <div className="erp-user-badge">{displayUserInitial}</div>
             <div className="erp-user-info">
               <span className="erp-user-name">{displayUserName}</span>
               <span className="erp-user-role">admin</span>
             </div>
             <ChevronDown size={16} color="hsl(215, 20.2%, 65.1%)" style={{ marginLeft: 4 }} />
-          </div>
+          </motion.div>
         </header>
 
-        <div className="erp-body custom-scrollbar">
-          <div className="erp-topbar-title">Dashboard</div>
-          <div className="erp-topbar-greeting">Welcome back, {displayUserName} 👋</div>
+        <motion.div 
+          className="erp-body custom-scrollbar"
+          variants={containerVariants}
+          initial="hidden"
+          animate="show"
+        >
+          <motion.div variants={itemVariants}>
+            <div className="erp-topbar-title">Dashboard</div>
+            <div className="erp-topbar-greeting">Welcome back, {displayUserName} 👋</div>
+          </motion.div>
 
           {/* Setup Checklist (Interactive based on currentStep) */}
-          <div style={{ background: 'var(--color-surface-2)', borderRadius: '12px', padding: '16px', marginBottom: '24px', border: '1px solid var(--color-border)' }}>
+          <motion.div variants={itemVariants} style={{ background: 'var(--color-surface-2)', borderRadius: '12px', padding: '16px', marginBottom: '24px', border: '1px solid var(--color-border)' }}>
             <h3 style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text)', marginBottom: '12px' }}>Onboarding Progress</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', opacity: currentStep >= 2 ? 1 : 0.5 }}>
-                {currentStep > 2 ? <CheckCircle2 size={16} className="text-green-500" /> : <Circle size={16} color="var(--color-text-muted)" />}
-                <span style={{ fontSize: '0.8125rem', color: currentStep > 2 ? 'var(--color-text)' : 'var(--color-text-muted)', textDecoration: currentStep > 2 ? 'line-through' : 'none' }}>Set Organization Details</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', opacity: currentStep >= 5 ? 1 : 0.5 }}>
-                {currentStep > 5 ? <CheckCircle2 size={16} className="text-green-500" /> : <Circle size={16} color="var(--color-text-muted)" />}
-                <span style={{ fontSize: '0.8125rem', color: currentStep > 5 ? 'var(--color-text)' : 'var(--color-text-muted)', textDecoration: currentStep > 5 ? 'line-through' : 'none' }}>Configure Modules</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', opacity: currentStep >= 6 ? 1 : 0.5 }}>
-                {currentStep > 6 ? <CheckCircle2 size={16} className="text-green-500" /> : <Circle size={16} color="var(--color-text-muted)" />}
-                <span style={{ fontSize: '0.8125rem', color: currentStep > 6 ? 'var(--color-text)' : 'var(--color-text-muted)', textDecoration: currentStep > 6 ? 'line-through' : 'none' }}>Select Pricing Plan</span>
-              </div>
+              <motion.div animate={{ opacity: currentStep >= 2 ? 1 : 0.5 }} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                {currentStep > 2 ? <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}><CheckCircle2 size={16} className="text-green-500" /></motion.div> : <Circle size={16} color="var(--color-text-muted)" />}
+                <span style={{ fontSize: '0.8125rem', color: currentStep > 2 ? 'var(--color-text)' : 'var(--color-text-muted)', textDecoration: currentStep > 2 ? 'line-through' : 'none', transition: 'all 0.3s ease' }}>Set Organization Details</span>
+              </motion.div>
+              <motion.div animate={{ opacity: currentStep >= 5 ? 1 : 0.5 }} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                {currentStep > 5 ? <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}><CheckCircle2 size={16} className="text-green-500" /></motion.div> : <Circle size={16} color="var(--color-text-muted)" />}
+                <span style={{ fontSize: '0.8125rem', color: currentStep > 5 ? 'var(--color-text)' : 'var(--color-text-muted)', textDecoration: currentStep > 5 ? 'line-through' : 'none', transition: 'all 0.3s ease' }}>Configure Modules</span>
+              </motion.div>
+              <motion.div animate={{ opacity: currentStep >= 6 ? 1 : 0.5 }} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                {currentStep > 6 ? <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}><CheckCircle2 size={16} className="text-green-500" /></motion.div> : <Circle size={16} color="var(--color-text-muted)" />}
+                <span style={{ fontSize: '0.8125rem', color: currentStep > 6 ? 'var(--color-text)' : 'var(--color-text-muted)', textDecoration: currentStep > 6 ? 'line-through' : 'none', transition: 'all 0.3s ease' }}>Select Pricing Plan</span>
+              </motion.div>
             </div>
-          </div>
+          </motion.div>
 
           {/* Stats */}
-          <div className="erp-stats-row">
-            {stats.map(stat => (
-              <div className="erp-stat-card" key={stat.label}>
+          <motion.div variants={itemVariants} className="erp-stats-row">
+            {stats.map((stat, idx) => (
+              <motion.div 
+                className="erp-stat-card" 
+                key={stat.label}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: idx * 0.1 }}
+                whileHover={{ y: -4, boxShadow: '0 8px 16px rgba(0,0,0,0.1)', cursor: 'pointer' }}
+              >
                 <div className="erp-stat-label">{stat.label}</div>
-                <div className="erp-stat-value">{stat.value}</div>
+                <motion.div 
+                  className="erp-stat-value"
+                  key={stat.value} // re-animate on value change
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                >{stat.value}</motion.div>
                 <div className="erp-stat-change">↑ {stat.change}</div>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
 
           {/* Charts */}
-          <div className="erp-charts-row">
-            <div className="erp-chart-card">
+          <motion.div variants={itemVariants} className="erp-charts-row">
+            <motion.div className="erp-chart-card" whileHover={{ y: -2, boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
               <div className="erp-chart-title">Revenue Overview</div>
               <div className="mini-bars">
                 {BAR_HEIGHTS.map((h, i) => (
                   <React.Fragment key={i}>
-                    <div className={`mini-bar${i === 8 ? ' highlight' : ''}`} style={{ height: `${h}%` }} />
-                    <div className="mini-bar accent" style={{ height: `${BAR2_HEIGHTS[i]}%` }} />
+                    <motion.div 
+                      className={`mini-bar${i === 8 ? ' highlight' : ''}`} 
+                      variants={barVariants}
+                      custom={`${h}%`}
+                      initial="hidden"
+                      animate="show"
+                    />
+                    <motion.div 
+                      className="mini-bar accent" 
+                      variants={barVariants}
+                      custom={`${BAR2_HEIGHTS[i]}%`}
+                      initial="hidden"
+                      animate="show"
+                    />
                   </React.Fragment>
                 ))}
               </div>
-            </div>
-            <div className="erp-chart-card">
+            </motion.div>
+            <motion.div className="erp-chart-card" whileHover={{ y: -2, boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
               <div className="erp-chart-title">Recent Activity</div>
               <div className="recent-list">
                 {[
@@ -208,35 +274,64 @@ export default function ERPDashboardPreview({ orgName, activeModules = [], curre
                   { label: 'PO #0033', value: 'KSh 4,800' },
                   { label: 'Expense', value: 'KSh 950' },
                   { label: 'New Customer', value: 'Nile Corp' },
-                ].map(item => (
-                  <div className="recent-item" key={item.label}>
+                ].map((item, idx) => (
+                  <motion.div 
+                    className="recent-item" 
+                    key={item.label}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: idx * 0.1 }}
+                    whileHover={{ x: 4, background: 'var(--color-surface-3)' }}
+                    style={{ borderRadius: '6px', padding: '4px 8px', margin: '0 -8px', cursor: 'pointer' }}
+                  >
                     <span className="recent-item-label">{item.label}</span>
                     <span className="recent-item-value">{item.value}</span>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
 
           {/* Module pills */}
-          {activeModules.length > 0 && (
-            <div style={{ marginTop: '24px' }}>
-              <div style={{ fontSize: '0.6875rem', color: 'hsl(215, 20.2%, 65.1%)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>
-                Active Modules
-              </div>
-              <div className="module-highlight">
-                {ALL_MODULES.map(mod => (
-                  <div
-                    key={mod}
-                    className={`module-pill${activeModules.some(m => mod.toLowerCase().includes(m.toLowerCase()) || m.toLowerCase().includes(mod.toLowerCase())) ? ' active' : ''}`}
-                  >
-                    {mod}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
+          <AnimatePresence mode="popLayout">
+            {activeModules.length > 0 && (
+              <motion.div 
+                variants={itemVariants}
+                initial="hidden"
+                animate="show"
+                exit="hidden"
+                style={{ marginTop: '24px' }}
+              >
+                <div style={{ fontSize: '0.6875rem', color: 'hsl(215, 20.2%, 65.1%)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>
+                  Active Modules
+                </div>
+                <div className="module-highlight">
+                  {ALL_MODULES.map((mod, idx) => {
+                    const isActive = activeModules.some(m => mod.toLowerCase().includes(m.toLowerCase()) || m.toLowerCase().includes(mod.toLowerCase()));
+                    return (
+                      <motion.div
+                        key={mod}
+                        layout
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ 
+                          opacity: 1, 
+                          scale: 1,
+                          backgroundColor: isActive ? 'var(--color-primary)' : 'var(--color-surface-3)',
+                          color: isActive ? '#fff' : 'var(--color-text)',
+                          borderColor: isActive ? 'var(--color-primary)' : 'var(--color-border)'
+                        }}
+                        transition={{ delay: idx * 0.05 }}
+                        className={`module-pill${isActive ? ' active' : ''}`}
+                      >
+                        {mod}
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
       </div>
     </div>
   );

@@ -1,4 +1,6 @@
 import React from 'react';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { OnboardingProvider, useOnboarding } from './features/onboarding/context/OnboardingContext';
 import { AnimatePresence } from 'framer-motion';
 import LandingPage from './features/marketing/pages/LandingPage';
@@ -15,17 +17,8 @@ import Step8Done from './features/onboarding/steps/Step8Done';
 import { ThemeProvider } from './features/theme/context/ThemeContext';
 
 function OnboardingFlow() {
-  const { step, direction, goTo } = useOnboarding();
-
-  // Handle OAuth callback route natively
-  if (window.location.pathname === '/sso-callback') {
-    return <SSOCallback />;
-  }
-
-  // Full-screen steps (no split layout handled internally)
-  if (step === 0) return <LandingPage />;
-  if (step === 7) return <Step7Pricing />;
-  if (step === 8) return <Step8Done />;
+  const { step, direction } = useOnboarding();
+  const location = useLocation();
 
   return (
     <>
@@ -46,23 +39,35 @@ function OnboardingFlow() {
       )}
 
       <AnimatePresence mode="wait" custom={direction}>
-        {step === 1 && <Step1Account key="step1" />}
-        {step === 2 && <Step2OrgSetup key="step2" />}
-        {step === 3 && <Step3BusinessType key="step3" />}
-        {step === 4 && <Step4TeamSize key="step4" />}
-        {step === 5 && <Step5Modules key="step5" />}
-        {step === 6 && <Step6HowYouSell key="step6" />}
+        <Routes location={location} key={location.pathname}>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/sso-callback" element={<SSOCallback />} />
+          <Route path="/onboarding/step-1" element={<Step1Account />} />
+          <Route path="/onboarding/step-2" element={<Step2OrgSetup />} />
+          <Route path="/onboarding/step-3" element={<Step3BusinessType />} />
+          <Route path="/onboarding/step-4" element={<Step4TeamSize />} />
+          <Route path="/onboarding/step-5" element={<Step5Modules />} />
+          <Route path="/onboarding/step-6" element={<Step6HowYouSell />} />
+          <Route path="/onboarding/step-7" element={<Step7Pricing />} />
+          <Route path="/onboarding/done" element={<Step8Done />} />
+        </Routes>
       </AnimatePresence>
     </>
   );
 }
 
+const queryClient = new QueryClient();
+
 export default function App() {
   return (
-    <ThemeProvider>
-      <OnboardingProvider>
-        <OnboardingFlow />
-      </OnboardingProvider>
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <BrowserRouter>
+          <OnboardingProvider>
+            <OnboardingFlow />
+          </OnboardingProvider>
+        </BrowserRouter>
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 }

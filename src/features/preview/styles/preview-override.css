@@ -82,7 +82,14 @@
   font-size: 0.875rem !important;
   color: var(--color-text-muted) !important;
   margin-bottom: 4px !important;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.erp-nav-item:hover:not(.active) {
+  background: var(--color-surface-3) !important;
+  color: var(--color-text) !important;
+  transform: translateX(4px);
 }
 
 .erp-nav-item.active {
