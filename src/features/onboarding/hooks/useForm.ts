@@ -7,7 +7,7 @@ export function useForm<T>(initialData: T, validate: Validator<T>) {
   const [errors, setErrors] = useState<Partial<Record<keyof T, string>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleChange = useCallback((field: keyof T, value: any) => {
+  const handleChange = useCallback((field: keyof T, value: T[keyof T]) => {
     setData(prev => ({ ...prev, [field]: value }));
     // Clear error for this field when user types
     setErrors(prev => {

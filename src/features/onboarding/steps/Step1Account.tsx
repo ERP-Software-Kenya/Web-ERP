@@ -38,8 +38,11 @@ export default function Step1Account() {
     return e;
   };
 
-  const handleAuthSuccess = async (sessionId: string) => {
-    await clerk.setActive({ session: sessionId });
+  const handleAuthSuccess = async (sessionId: string | null) => {
+    if (!clerk) return;
+    if (sessionId) {
+      await clerk.setActive({ session: sessionId });
+    }
     
     if (clerk.session) {
       const token = await clerk.session.getToken();
@@ -74,7 +77,7 @@ export default function Step1Account() {
     setErrors({});
 
     try {
-      if (clerk) {
+      if (clerk && clerk.client) {
         if (mode === 'signup') {
           if (clerk.session) {
             await clerk.signOut();
@@ -113,7 +116,9 @@ export default function Step1Account() {
           if (signIn.status === 'complete') {
             await handleAuthSuccess(signIn.createdSessionId);
           } else if (signIn.status === 'needs_first_factor') {
-            await signIn.prepareFirstFactor({ strategy: 'email_code', emailAddressId: signIn.supportedFirstFactors.find((f: any) => f.strategy === 'email_code')?.emailAddressId });
+            const emailFactor = signIn.supportedFirstFactors?.find(f => f.strategy === 'email_code');
+            const emailAddressId = emailFactor && 'emailAddressId' in emailFactor ? (emailFactor as any).emailAddressId : undefined;
+            await signIn.prepareFirstFactor({ strategy: 'email_code', emailAddressId });
             setPendingVerification(true);
           } else if (signIn.status === 'needs_second_factor') {
              // Basic fallback for 2FA
@@ -125,8 +130,9 @@ export default function Step1Account() {
       } else {
         goNext();
       }
-    } catch (err: any) {
-      const msg = err?.errors?.[0]?.message || err?.message || 'Authentication failed';
+    } catch (err: unknown) {
+      const errorObj = err as any;
+      const msg = errorObj?.errors?.[0]?.message || errorObj?.message || 'Authentication failed';
       setErrors({ submit: msg });
     } finally {
       setLoading(false);
@@ -143,7 +149,7 @@ export default function Step1Account() {
     setErrors({});
     
     try {
-      if (!clerk) return;
+      if (!clerk || !clerk.client) return;
 
       if (mode === 'signup') {
         const completeSignUp = await clerk.client.signUp.attemptEmailAddressVerification({
@@ -177,8 +183,9 @@ export default function Step1Account() {
           setErrors({ submit: `Verification failed. Status: ${completeSignIn?.status}` });
         }
       }
-    } catch (err: any) {
-      const msg = err?.errors?.[0]?.message || err?.message || 'Verification failed';
+    } catch (err: unknown) {
+      const errorObj = err as any;
+      const msg = errorObj?.errors?.[0]?.message || errorObj?.message || 'Verification failed';
       setErrors({ submit: msg });
     } finally {
       setLoading(false);
@@ -230,7 +237,7 @@ export default function Step1Account() {
               transition: 'all 0.2s',
             }}
             onClick={async () => {
-              if (!clerk) return;
+              if (!clerk || !clerk.client) return;
               try {
                 if (clerk.session) {
                   await clerk.signOut();
@@ -240,8 +247,9 @@ export default function Step1Account() {
                   redirectUrl: window.location.origin + '/sso-callback',
                   redirectUrlComplete: window.location.origin + '?step=2',
                 });
-              } catch (err: any) {
-                setErrors({ submit: err?.message || 'Google sign-in failed' });
+              } catch (err: unknown) {
+                const errorObj = err as any;
+                setErrors({ submit: errorObj?.message || 'Google sign-in failed' });
               }
             }}
           >
@@ -266,14 +274,14 @@ export default function Step1Account() {
                 label="First name"
                 placeholder="Sarah"
                 value={data.firstName}
-                onChange={(e: any) => handleChange('firstName', e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('firstName', e.target.value)}
                 error={errors.firstName}
               />
               <Input
                 label="Last name"
                 placeholder="Jenkins"
                 value={data.lastName}
-                onChange={(e: any) => handleChange('lastName', e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('lastName', e.target.value)}
                 error={errors.lastName}
               />
             </div>
@@ -284,7 +292,7 @@ export default function Step1Account() {
             type="email"
             placeholder="sarah@company.com"
             value={data.email}
-            onChange={(e: any) => handleChange('email', e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('email', e.target.value)}
             error={errors.email}
           />
 
@@ -293,9 +301,9 @@ export default function Step1Account() {
             type="password"
             placeholder={mode === 'signup' ? 'Min. 8 characters' : 'Your password'}
             value={data.password}
-            onChange={(e: any) => handleChange('password', e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('password', e.target.value)}
             error={errors.password}
-            onKeyDown={(e: any) => e.key === 'Enter' && handleContinue()}
+            onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === 'Enter' && handleContinue()}
           />
 
           {errors.submit && (
@@ -325,13 +333,13 @@ export default function Step1Account() {
             type="text"
             placeholder="123456"
             value={otpCode}
-            onChange={(e: any) => {
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
               setOtpCode(e.target.value);
               setErrors({});
             }}
             error={errors.submit}
             autoFocus
-            onKeyDown={(e: any) => e.key === 'Enter' && handleContinue()}
+            onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === 'Enter' && handleContinue()}
           />
           
           <div style={{ marginTop: '16px', textAlign: 'center' }}>

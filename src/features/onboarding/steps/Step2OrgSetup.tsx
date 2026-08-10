@@ -44,7 +44,7 @@ export default function Step2OrgSetup() {
         label="Organization name"
         placeholder="Nexus Innovations"
         value={data.orgName}
-        onChange={(e: any) => handleChange('orgName', e.target.value)}
+        onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('orgName', e.target.value)}
         error={errors.orgName}
         autoFocus
       />
@@ -54,7 +54,7 @@ export default function Step2OrgSetup() {
         placeholder="Select your industry"
         options={INDUSTRIES}
         value={data.industry}
-        onChange={(e: any) => handleChange('industry', e.target.value)}
+        onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleChange('industry', e.target.value)}
         error={errors.industry}
       />
 
@@ -63,7 +63,7 @@ export default function Step2OrgSetup() {
         placeholder="Select your country"
         options={COUNTRIES}
         value={data.country}
-        onChange={(e: any) => handleChange('country', e.target.value)}
+        onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleChange('country', e.target.value)}
         error={errors.country}
       />
 

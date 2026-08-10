@@ -24,8 +24,8 @@ const STORAGE_KEY = 'onboarding_data';
 interface OnboardingContextType {
   data: OnboardingData;
   setData: (updates: Partial<OnboardingData>) => void;
-  clerk: any;
-  setClerk: (c: any) => void;
+  clerk: Clerk | null;
+  setClerk: (c: Clerk | null) => void;
   isClerkLoaded: boolean;
   isSignedIn: boolean;
   step: number;
@@ -72,7 +72,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   }, [data]);
 
-  const [clerk, setClerk] = useState<any>(null);
+  const [clerk, setClerk] = useState<Clerk | null>(null);
   const [isClerkLoaded, setIsClerkLoaded] = useState(false);
   const [isSignedIn, setIsSignedIn] = useState(false);
   const totalSteps = 8;
