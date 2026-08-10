@@ -1,5 +1,6 @@
 import React from 'react';
 import { useOnboarding } from '../context/OnboardingContext';
+import { Download, Globe } from 'lucide-react';
 
 // Link to the GitHub Releases API to fetch the latest download
 const GITHUB_API_LATEST = 'https://api.github.com/repos/ERP-Software-Kenya/ERP-Client/releases/latest';
@@ -118,11 +119,7 @@ export default function Step8Done() {
             onClick={handleDownloadClick}
             style={{ cursor: 'pointer' }}
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
-              <polyline points="7 10 12 15 17 10" />
-              <line x1="12" y1="15" x2="12" y2="3" />
-            </svg>
+            <Download size={18} strokeWidth={2} />
             Download Web-ERP Desktop App
           </button>
 
@@ -133,11 +130,7 @@ export default function Step8Done() {
             target="_blank"
             rel="noopener noreferrer"
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10" />
-              <line x1="2" y1="12" x2="22" y2="12" />
-              <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" />
-            </svg>
+            <Globe size={16} strokeWidth={2} />
             {primaryCtaText}
           </a>
 

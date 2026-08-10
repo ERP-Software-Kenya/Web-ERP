@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useOnboarding } from '../context/OnboardingContext';
+import { Check } from 'lucide-react';
 import StepLayout from '../components/StepLayout';
 import type { TeamSize } from '../../../types';
 
@@ -40,9 +41,7 @@ export default function Step4TeamSize() {
             >
               {size}
               {isSelected && (
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                  <path d="M20 6L9 17l-5-5" stroke="var(--color-primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
+                <Check size={24} color="var(--color-primary)" strokeWidth={2} />
               )}
             </button>
           );

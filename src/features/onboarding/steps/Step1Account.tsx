@@ -4,6 +4,7 @@ import { Clerk } from '@clerk/clerk-js';
 import { useOnboarding } from '../context/OnboardingContext';
 import StepLayout from '../components/StepLayout';
 import Input from '../../../components/ui/Input';
+import GoogleIcon from '../../../components/icons/GoogleIcon';
 
 export default function Step1Account() {
   const { data, setData, goNext, goBack, clerk, isClerkLoaded, isSignedIn } = useOnboarding();
@@ -253,12 +254,7 @@ export default function Step1Account() {
               }
             }}
           >
-            <svg width="20" height="20" viewBox="0 0 24 24">
-              <path fill="#EA4335" d="M24 12.27c0-.85-.08-1.66-.22-2.45H12.24v4.62h6.61a5.64 5.64 0 01-2.44 3.7v3.08h3.94c2.31-2.12 3.65-5.25 3.65-8.95z"/>
-              <path fill="#34A853" d="M12.24 24c3.3 0 6.08-1.09 8.11-2.95l-3.94-3.08c-1.1.74-2.51 1.18-4.17 1.18-3.2 0-5.91-2.16-6.88-5.07H1.28v3.17A11.99 11.99 0 0012.24 24z"/>
-              <path fill="#FBBC05" d="M5.36 17.08a7.19 7.19 0 01-.38-2.3c0-.8.14-1.58.38-2.3V9.3H1.28A11.97 11.97 0 000 14.78c0 1.92.46 3.74 1.28 5.37l4.08-3.07z"/>
-              <path fill="#4285F4" d="M12.24 4.75c1.8 0 3.41.62 4.67 1.83l3.5-3.5A11.95 11.95 0 0012.24 0 11.99 11.99 0 001.28 5.51l4.08 3.17c.97-2.91 3.68-5.07 6.88-5.07z"/>
-            </svg>
+            <GoogleIcon />
             Continue with Google
           </button>
 

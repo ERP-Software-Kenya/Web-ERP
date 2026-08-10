@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { ArrowRight } from 'lucide-react';
 import { useOnboarding } from '../../onboarding/context/OnboardingContext';
 import { Boxes, Zap, Shield, Database } from 'lucide-react';
 import MarketingHeader from '../components/MarketingHeader';
@@ -91,10 +92,7 @@ export default function LandingPage() {
               }}
             >
               {isClerkLoaded && isSignedIn ? 'Go to Dashboard' : 'Initialize Workspace'}
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="landing-btn-icon">
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-                <polyline points="12 5 19 12 12 19"></polyline>
-              </svg>
+              <ArrowRight size={20} strokeWidth={2.5} className="landing-btn-icon" />
             </button>
             <button className="landing-btn-secondary" onClick={() => window.location.href = 'https://github.com/ERP-Software-Kenya/Web-ERP'}>
               View Documentation
