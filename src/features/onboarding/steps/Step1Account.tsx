@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Clerk } from '@clerk/clerk-js';
 import { useOnboarding } from '../context/OnboardingContext';
@@ -19,17 +19,11 @@ export default function Step1Account() {
   const [pendingVerification, setPendingVerification] = useState(false);
   const [otpCode, setOtpCode] = useState('');
 
-  // Auto-redirect if already signed in on initial visit
-  const initialCheckDone = useRef(false);
-  
   useEffect(() => {
-    if (isClerkLoaded && !initialCheckDone.current) {
-      initialCheckDone.current = true;
-      if (isSignedIn) {
-        navigate('/dashboard');
-      }
+    if (isClerkLoaded && isSignedIn) {
+      navigate('/dashboard');
     }
-  }, [isClerkLoaded, isSignedIn]);
+  }, [isClerkLoaded, isSignedIn, navigate]);
 
   const validate = () => {
     const e: Record<string, string> = {};
@@ -44,13 +38,26 @@ export default function Step1Account() {
     return e;
   };
 
-  const storeSessionAndNext = async (clerk: any) => {
+  const handleAuthSuccess = async (sessionId: string) => {
+    await clerk.setActive({ session: sessionId });
+    
     if (clerk.session) {
       const token = await clerk.session.getToken();
-      if (token) {
-        localStorage.setItem('auth_token', token);
+      if (token) localStorage.setItem('auth_token', token);
+    }
+
+    if (mode === 'signin') {
+      try {
+        const memberships = await clerk.user?.getOrganizationMemberships();
+        if (memberships && memberships.data && memberships.data.length > 0) {
+          navigate('/dashboard');
+          return;
+        }
+      } catch (e) {
+        console.error('Membership check failed after auth', e);
       }
     }
+    
     goNext();
   };
 
@@ -86,8 +93,7 @@ export default function Step1Account() {
           });
 
           if (signUp.status === 'complete') {
-            await clerk.setActive({ session: signUp.createdSessionId });
-            await storeSessionAndNext(clerk);
+            await handleAuthSuccess(signUp.createdSessionId);
           } else if (signUp.unverifiedFields.includes('email_address')) {
             await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
             setPendingVerification(true);
@@ -105,24 +111,7 @@ export default function Step1Account() {
           });
 
           if (signIn.status === 'complete') {
-            await clerk.setActive({ session: signIn.createdSessionId });
-            
-            if (clerk.session) {
-              const token = await clerk.session.getToken();
-              if (token) localStorage.setItem('auth_token', token);
-            }
-            
-            try {
-              const memberships = await clerk.user?.getOrganizationMemberships();
-              if (memberships && memberships.data && memberships.data.length > 0) {
-                navigate('/dashboard');
-                return;
-              }
-            } catch (e) {
-              console.error('Membership check failed after sign-in', e);
-            }
-            
-            goNext();
+            await handleAuthSuccess(signIn.createdSessionId);
           } else if (signIn.status === 'needs_first_factor') {
             await signIn.prepareFirstFactor({ strategy: 'email_code', emailAddressId: signIn.supportedFirstFactors.find((f: any) => f.strategy === 'email_code')?.emailAddressId });
             setPendingVerification(true);
@@ -162,8 +151,7 @@ export default function Step1Account() {
         });
         
         if (completeSignUp.status === 'complete') {
-          await clerk.setActive({ session: completeSignUp.createdSessionId });
-          await storeSessionAndNext(clerk);
+          await handleAuthSuccess(completeSignUp.createdSessionId);
         } else {
           setErrors({ submit: `Verification failed. Status: ${completeSignUp.status}` });
         }
@@ -184,13 +172,7 @@ export default function Step1Account() {
         }
         
         if (completeSignIn && completeSignIn.status === 'complete') {
-          await clerk.setActive({ session: completeSignIn.createdSessionId });
-          
-          if (clerk.session) {
-            const token = await clerk.session.getToken();
-            if (token) localStorage.setItem('auth_token', token);
-          }
-          goNext();
+          await handleAuthSuccess(completeSignIn.createdSessionId);
         } else {
           setErrors({ submit: `Verification failed. Status: ${completeSignIn?.status}` });
         }
