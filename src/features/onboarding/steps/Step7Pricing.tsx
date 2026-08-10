@@ -96,9 +96,34 @@ export default function Step7Pricing() {
       setLoading(true);
       setError(null);
       try {
-        await clerk.createOrganization({ name: data.orgName });
+        const clerkOrg = await clerk.createOrganization({ name: data.orgName });
+        
+        // Ensure the newly created organization is set as active
+        if (clerk.setActive) {
+          await clerk.setActive({ organization: clerkOrg.id });
+        }
+
+        const token = await clerk.session?.getToken();
+        const apiUrl = import.meta.env.VITE_API_BASE_URL || 'https://core-apis-m03n.onrender.com';
+        
+        const response = await fetch(`${apiUrl}/api/v1/auth/organizations`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            name: data.orgName.trim(),
+            slug: clerkOrg.slug || data.orgName.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''),
+            clerkOrgId: clerkOrg.id
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to synchronize organization with backend server.');
+        }
       } catch (err: any) {
-        console.error('Failed to create organization in Clerk:', err);
+        console.error('Failed to create organization:', err);
         const errMsg = err?.errors?.[0]?.longMessage || err?.errors?.[0]?.message || err?.message || 'Failed to create workspace. Please try again.';
         setError(errMsg);
         setLoading(false);

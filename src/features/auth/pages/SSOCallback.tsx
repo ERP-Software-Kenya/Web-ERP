@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useOnboarding } from '../../onboarding/context/OnboardingContext';
 import { Clerk } from '@clerk/clerk-js';
 
@@ -7,6 +8,7 @@ const CLERK_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY as string;
 export default function SSOCallback() {
   const { setClerk, setData } = useOnboarding();
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     let mounted = true;
@@ -20,9 +22,7 @@ export default function SSOCallback() {
         setClerk(clerk);
 
         // Handle the OAuth callback
-        await clerk.handleRedirectCallback({
-          redirectUrl: window.location.origin,
-        });
+        await clerk.handleRedirectCallback();
         
         // Explicitly store the JWT token in localStorage
         if (clerk.session) {
@@ -35,20 +35,22 @@ export default function SSOCallback() {
         if (clerk.user) {
           // Check if they already have an organization
           const memberships = await clerk.user.getOrganizationMemberships();
-          if (memberships && memberships.data && memberships.data.length > 0) {
-            window.location.href = import.meta.env.VITE_CLIENT_URL || 'http://localhost:5173';
-            return;
+          const hasMembership = memberships && memberships.data && memberships.data.length > 0;
+          
+          if (hasMembership) {
+            // They are a returning user with an organization
+            navigate('/dashboard');
+          } else {
+            // Pre-fill user data
+            setData({
+              firstName: clerk.user.firstName || '',
+              lastName: clerk.user.lastName || '',
+              email: clerk.user.primaryEmailAddress?.emailAddress || '',
+            });
+
+            // They are a new user, or a returning user without an organization yet
+            navigate('/onboarding/step-2');
           }
-
-          // Pre-fill user data
-          setData({
-            firstName: clerk.user.firstName || '',
-            lastName: clerk.user.lastName || '',
-            email: clerk.user.primaryEmailAddress?.emailAddress || '',
-          });
-
-          // Redirect to step 2 by cleaning up URL
-          window.location.href = window.location.origin + '?step=2';
         }
       } catch (err: any) {
         console.error('SSO Callback error:', err);
@@ -70,7 +72,7 @@ export default function SSOCallback() {
           <p className="sso-callback-msg">{error}</p>
           <button 
             className="btn-primary" 
-            onClick={() => window.location.href = window.location.origin}
+            onClick={() => navigate('/')}
           >
             Return to Login
           </button>

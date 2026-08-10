@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { Clerk } from '@clerk/clerk-js';
 import type { OnboardingData } from '../../../types';
 
 const defaultData: OnboardingData = {
@@ -25,6 +26,8 @@ interface OnboardingContextType {
   setData: (updates: Partial<OnboardingData>) => void;
   clerk: any;
   setClerk: (c: any) => void;
+  isClerkLoaded: boolean;
+  isSignedIn: boolean;
   step: number;
   totalSteps: number;
   direction: number;
@@ -70,7 +73,32 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
   }, [data]);
 
   const [clerk, setClerk] = useState<any>(null);
+  const [isClerkLoaded, setIsClerkLoaded] = useState(false);
+  const [isSignedIn, setIsSignedIn] = useState(false);
   const totalSteps = 8;
+
+  useEffect(() => {
+    let mounted = true;
+    const initClerk = async () => {
+      try {
+        const CLERK_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY as string;
+        if (!CLERK_KEY) return;
+        const clerkInstance = new Clerk(CLERK_KEY);
+        await clerkInstance.load();
+        if (!mounted) return;
+        setClerk(clerkInstance);
+        setIsClerkLoaded(true);
+        if (clerkInstance.session) {
+          setIsSignedIn(true);
+        }
+      } catch (e) {
+        console.error('Clerk load error', e);
+        if (mounted) setIsClerkLoaded(true);
+      }
+    };
+    initClerk();
+    return () => { mounted = false; };
+  }, []);
 
   const setData = (updates: Partial<OnboardingData>) => {
     setDataState((prev: OnboardingData) => ({ ...prev, ...updates }));
@@ -94,7 +122,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <OnboardingContext.Provider value={{ data, setData, clerk, setClerk, step: currentStep, totalSteps, direction, goNext, goBack, goTo }}>
+    <OnboardingContext.Provider value={{ data, setData, clerk, setClerk, isClerkLoaded, isSignedIn, step: currentStep, totalSteps, direction, goNext, goBack, goTo }}>
       {children}
     </OnboardingContext.Provider>
   );

@@ -1,10 +1,13 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ChevronDown, Globe } from 'lucide-react';
 import { useOnboarding } from '../../onboarding/context/OnboardingContext';
 
 export default function MarketingHeader() {
   const { goNext } = useOnboarding();
+  const navigate = useNavigate();
+
 
   return (
     <header className="marketing-header">
@@ -44,7 +47,7 @@ export default function MarketingHeader() {
             <Globe size={16} style={{ marginRight: 6 }} />
             <span>EN</span>
           </div>
-          <button className="btn-marketing-login">Sign In</button>
+          <button className="btn-marketing-login" onClick={() => navigate('/onboarding/step-1?mode=signin')}>Sign In</button>
           <button className="btn-marketing-primary" onClick={goNext}>
             Start Free Trial
           </button>

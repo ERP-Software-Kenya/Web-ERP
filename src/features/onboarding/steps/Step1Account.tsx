@@ -1,42 +1,35 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Clerk } from '@clerk/clerk-js';
 import { useOnboarding } from '../context/OnboardingContext';
 import StepLayout from '../components/StepLayout';
 import Input from '../../../components/ui/Input';
 
-const CLERK_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY as string;
-
 export default function Step1Account() {
-  const { data, setData, goNext, goBack, setClerk } = useOnboarding();
+  const { data, setData, goNext, goBack, clerk, isClerkLoaded, isSignedIn } = useOnboarding();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [clerkReady, setClerkReady] = useState(false);
-  const [mode, setMode] = useState<'signup' | 'signin'>('signup');
+  
+  const initialMode = new URLSearchParams(location.search).get('mode') === 'signin' ? 'signin' : 'signup';
+  const [mode, setMode] = useState<'signup' | 'signin'>(initialMode);
   
   // OTP Verification state
   const [pendingVerification, setPendingVerification] = useState(false);
   const [otpCode, setOtpCode] = useState('');
-  
-  const clerkRef = useRef<any>(null);
 
+  // Auto-redirect if already signed in on initial visit
+  const initialCheckDone = useRef(false);
+  
   useEffect(() => {
-    let mounted = true;
-    const initClerk = async () => {
-      try {
-        const clerk = new Clerk(CLERK_KEY);
-        await clerk.load();
-        if (!mounted) return;
-        clerkRef.current = clerk;
-        setClerk(clerk);
-        setClerkReady(true);
-      } catch (e) {
-        console.error('Clerk load error', e);
-        if (mounted) setClerkReady(true);
+    if (isClerkLoaded && !initialCheckDone.current) {
+      initialCheckDone.current = true;
+      if (isSignedIn) {
+        navigate('/dashboard');
       }
-    };
-    initClerk();
-    return () => { mounted = false; };
-  }, []);
+    }
+  }, [isClerkLoaded, isSignedIn]);
 
   const validate = () => {
     const e: Record<string, string> = {};
@@ -74,7 +67,6 @@ export default function Step1Account() {
     setErrors({});
 
     try {
-      const clerk = clerkRef.current;
       if (clerk) {
         if (mode === 'signup') {
           if (clerk.session) {
@@ -103,6 +95,10 @@ export default function Step1Account() {
             setErrors({ submit: `Signup incomplete (Status: ${signUp.status}).` });
           }
         } else {
+          if (clerk.session) {
+            await clerk.signOut();
+          }
+          
           const signIn = await clerk.client.signIn.create({
             identifier: data.email.trim(),
             password: data.password,
@@ -119,7 +115,7 @@ export default function Step1Account() {
             try {
               const memberships = await clerk.user?.getOrganizationMemberships();
               if (memberships && memberships.data && memberships.data.length > 0) {
-                window.location.href = import.meta.env.VITE_CLIENT_URL || 'http://localhost:5173';
+                navigate('/dashboard');
                 return;
               }
             } catch (e) {
@@ -158,7 +154,6 @@ export default function Step1Account() {
     setErrors({});
     
     try {
-      const clerk = clerkRef.current;
       if (!clerk) return;
 
       if (mode === 'signup') {
@@ -213,13 +208,16 @@ export default function Step1Account() {
     setErrors(prev => ({ ...prev, [field]: '' }));
   };
 
-  if (!clerkReady) {
+  if (!isClerkLoaded) {
     return (
       <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-bg)' }}>
         <div style={{ color: 'var(--color-primary)', fontWeight: 600 }}>Loading secure environment...</div>
       </div>
     );
   }
+
+  // If they are signed in, don't show the form (they are being redirected)
+  if (isSignedIn) return null;
 
   return (
     <StepLayout
@@ -250,9 +248,11 @@ export default function Step1Account() {
               transition: 'all 0.2s',
             }}
             onClick={async () => {
-              const clerk = clerkRef.current;
               if (!clerk) return;
               try {
+                if (clerk.session) {
+                  await clerk.signOut();
+                }
                 await clerk.client.signIn.authenticateWithRedirect({
                   strategy: 'oauth_google',
                   redirectUrl: window.location.origin + '/sso-callback',

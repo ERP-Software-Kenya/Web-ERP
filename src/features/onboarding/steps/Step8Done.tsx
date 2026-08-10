@@ -1,12 +1,35 @@
 import React from 'react';
 import { useOnboarding } from '../context/OnboardingContext';
 
-const GITHUB_RELEASE_URL = 'https://github.com/ERP-Software-Kenya/Web-ERP/releases/latest';
+// Link to the GitHub Releases API to fetch the latest download
+const GITHUB_API_LATEST = 'https://api.github.com/repos/ERP-Software-Kenya/ERP-Client/releases/latest';
+const GITHUB_RELEASES_URL = 'https://github.com/ERP-Software-Kenya/ERP-Client/releases/latest';
 
 export default function Step8Done() {
   const { data } = useOnboarding();
   const displayName = data.orgName.trim() || 'Your Organization';
   const firstName = data.firstName.trim() || 'Admin';
+
+  const handleDownloadClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    try {
+      const response = await fetch(GITHUB_API_LATEST);
+      const release = await response.json();
+      const exeAsset = release.assets?.find((asset: any) => asset.name.endsWith('.exe'));
+      
+      if (exeAsset) {
+        // Direct download
+        window.location.href = exeAsset.browser_download_url;
+      } else {
+        // Fallback to releases page
+        window.open(GITHUB_RELEASES_URL, '_blank');
+      }
+    } catch (err) {
+      console.error('Failed to fetch latest release', err);
+      // Fallback
+      window.open(GITHUB_RELEASES_URL, '_blank');
+    }
+  };
 
   // Dynamically generate action cards based on selected modules
   const actionCards = [];
@@ -89,12 +112,11 @@ export default function Step8Done() {
         </div>
 
         <div className="done-ctas">
-          <a
+          <button
             id="btn-download-desktop"
             className="btn-download"
-            href={GITHUB_RELEASE_URL}
-            target="_blank"
-            rel="noopener noreferrer"
+            onClick={handleDownloadClick}
+            style={{ cursor: 'pointer' }}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
@@ -102,7 +124,7 @@ export default function Step8Done() {
               <line x1="12" y1="15" x2="12" y2="3" />
             </svg>
             Download Web-ERP Desktop App
-          </a>
+          </button>
 
           <a
             id="btn-open-web"
@@ -158,14 +180,13 @@ export default function Step8Done() {
               <strong>Get the Desktop App</strong>
               Download for Windows, macOS, or Linux. Works offline.
             </div>
-            <a
-              href={GITHUB_RELEASE_URL}
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
+              onClick={handleDownloadClick}
               className="done-download-link"
+              style={{ background: 'transparent', border: 'none', padding: 0 }}
             >
               Download
-            </a>
+            </button>
           </div>
 
           {data.modules.length > 0 && (

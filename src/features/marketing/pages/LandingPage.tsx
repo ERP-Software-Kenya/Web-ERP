@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useOnboarding } from '../../onboarding/context/OnboardingContext';
 import { Boxes, Zap, Shield, Database } from 'lucide-react';
@@ -6,7 +7,8 @@ import MarketingHeader from '../components/MarketingHeader';
 import MarketingFooter from '../components/MarketingFooter';
 
 export default function LandingPage() {
-  const { goNext } = useOnboarding();
+  const { goNext, isClerkLoaded, isSignedIn } = useOnboarding();
+  const navigate = useNavigate();
 
   // Animation variants
   const containerVars = {
@@ -78,8 +80,17 @@ export default function LandingPage() {
           </motion.p>
 
           <motion.div variants={itemVars} className="landing-cta-group">
-            <button className="landing-btn-primary" onClick={goNext}>
-              Initialize Workspace
+            <button 
+              className="landing-btn-primary" 
+              onClick={() => {
+                if (isSignedIn) {
+                  navigate('/dashboard');
+                } else {
+                  goNext();
+                }
+              }}
+            >
+              {isClerkLoaded && isSignedIn ? 'Go to Dashboard' : 'Initialize Workspace'}
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="landing-btn-icon">
                 <line x1="5" y1="12" x2="19" y2="12"></line>
                 <polyline points="12 5 19 12 12 19"></polyline>
