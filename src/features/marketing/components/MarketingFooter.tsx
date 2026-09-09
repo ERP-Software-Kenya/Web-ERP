@@ -1,5 +1,6 @@
 import React from 'react';
-import { Twitter, Linkedin, Github, ArrowRight, MapPin } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { ArrowRight, Github, Linkedin, Mail, MapPin } from 'lucide-react';
 
 interface Props {
   onScrollTo?: (id: string) => void;
@@ -7,122 +8,101 @@ interface Props {
 
 export default function MarketingFooter({ onScrollTo }: Props) {
   const productLinks = [
-    { label: 'Inventory Management', id: 'modules' },
-    { label: 'Sales & Invoicing', id: 'modules' },
-    { label: 'Financial Accounting', id: 'modules' },
-    { label: 'CRM', id: 'modules' },
-    { label: 'HR & Payroll', id: 'modules' },
-    { label: 'Pricing', id: 'pricing' },
-  ];
-
-  const companyLinks = [
-    { label: 'About Us', href: '#' },
-    { label: 'Careers', href: '#' },
-    { label: 'Partners', href: '#' },
-    { label: 'Contact Sales', href: '#' },
-    { label: 'System Status', href: '#' },
-  ];
-
-  const resourceLinks = [
-    { label: 'Documentation', href: 'https://github.com/ERP-Software-Kenya/Web-ERP' },
-    { label: 'API Reference', href: '#' },
-    { label: 'Community Forum', href: '#' },
-    { label: 'Blog', href: '#' },
-    { label: 'Help Center', href: '#' },
+    { label: 'Sales and POS', id: 'modules' },
+    { label: 'Purchase control', id: 'modules' },
+    { label: 'Inventory and stock', id: 'modules' },
+    { label: 'Reports and analytics', id: 'platform' },
+    { label: 'Branch operations', id: 'operations' },
   ];
 
   return (
     <footer className="lp-footer">
       <div className="lp-footer-inner">
-        {/* Brand column */}
         <div className="lp-footer-brand">
-          <div className="lp-header-logo" style={{ marginBottom: 16 }}>
-            <div className="lp-logo-icon">W</div>
-            <span style={{ color: '#fff', fontSize: '1.1rem', fontWeight: 700 }}>Web-ERP</span>
-          </div>
+          <Link className="lp-header-logo" to="/" style={{ marginBottom: 16 }}>
+            <div className="lp-logo-icon">P</div>
+            <span style={{ color: '#fff', fontSize: '1.1rem', fontWeight: 700 }}>Pramukh Digital</span>
+          </Link>
           <p className="lp-footer-tagline">
-            The unified operating system for modern commerce.
-            Scale your inventory, sales, and operations on a single architecture.
+            Desktop-first ERP for growing distributors, retailers, wholesalers,
+            and branch-led businesses.
           </p>
           <div className="lp-footer-location">
             <MapPin size={13} />
-            Built for Africa. Available worldwide.
+            Built for Kenya. Ready for multi-branch commerce.
           </div>
           <div className="lp-footer-newsletter">
-            <p className="lp-footer-newsletter-label">Stay in the loop</p>
+            <p className="lp-footer-newsletter-label">Request a product walkthrough</p>
             <div className="lp-footer-newsletter-row">
               <input
                 type="email"
-                placeholder="Enter your email"
+                placeholder="Work email"
                 className="lp-footer-newsletter-input"
-                aria-label="Email for newsletter"
+                aria-label="Work email"
               />
-              <button className="lp-footer-newsletter-btn" aria-label="Subscribe">
+              <button className="lp-footer-newsletter-btn" aria-label="Request walkthrough">
                 <ArrowRight size={16} />
               </button>
             </div>
           </div>
         </div>
 
-        {/* Product links */}
         <div className="lp-footer-col">
           <h4 className="lp-footer-col-heading">Product</h4>
-          {productLinks.map((l) => (
+          {productLinks.map((link) => (
             <button
-              key={l.label}
+              key={link.label}
               className="lp-footer-link"
-              onClick={() => onScrollTo?.(l.id)}
+              onClick={() => onScrollTo?.(link.id)}
             >
-              {l.label}
+              {link.label}
             </button>
           ))}
         </div>
 
-        {/* Resources */}
         <div className="lp-footer-col">
-          <h4 className="lp-footer-col-heading">Resources</h4>
-          {resourceLinks.map((l) => (
-            <a key={l.label} href={l.href} className="lp-footer-link" target="_blank" rel="noopener noreferrer">
-              {l.label}
-            </a>
-          ))}
+          <h4 className="lp-footer-col-heading">Downloads</h4>
+          <Link className="lp-footer-link" to="/downloads">Latest ERP client</Link>
+          <Link className="lp-footer-link" to="/downloads">All desktop versions</Link>
+          <a className="lp-footer-link" href="https://github.com/ERP-Software-Kenya/ERP-Client" target="_blank" rel="noreferrer">
+            Desktop client repository
+          </a>
         </div>
 
-        {/* Company */}
         <div className="lp-footer-col">
           <h4 className="lp-footer-col-heading">Company</h4>
-          {companyLinks.map((l) => (
-            <a key={l.label} href={l.href} className="lp-footer-link">
-              {l.label}
-            </a>
-          ))}
+          <a className="lp-footer-link" href="mailto:sales@pramukhdigital.com">
+            Contact sales
+          </a>
+          <a className="lp-footer-link" href="mailto:support@pramukhdigital.com">
+            Support
+          </a>
+          <a className="lp-footer-link" href="https://github.com/ERP-Software-Kenya" target="_blank" rel="noreferrer">
+            Engineering
+          </a>
         </div>
       </div>
 
-      {/* Bottom bar */}
       <div className="lp-footer-bottom">
         <div className="lp-footer-copyright">
-          © {new Date().getFullYear()} Web-ERP Technologies Inc. All rights reserved.
+          © {new Date().getFullYear()} Pramukh Digital. All rights reserved.
         </div>
 
         <div className="lp-footer-social">
-          <a href="#" className="lp-social-link" aria-label="Twitter"><Twitter size={18} /></a>
-          <a href="#" className="lp-social-link" aria-label="LinkedIn"><Linkedin size={18} /></a>
-          <a
-            href="https://github.com/ERP-Software-Kenya"
-            className="lp-social-link"
-            aria-label="GitHub"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
+          <a href="mailto:sales@pramukhdigital.com" className="lp-social-link" aria-label="Email">
+            <Mail size={18} />
+          </a>
+          <a href="https://www.linkedin.com" className="lp-social-link" aria-label="LinkedIn" target="_blank" rel="noreferrer">
+            <Linkedin size={18} />
+          </a>
+          <a href="https://github.com/ERP-Software-Kenya" className="lp-social-link" aria-label="GitHub" target="_blank" rel="noreferrer">
             <Github size={18} />
           </a>
         </div>
 
         <div className="lp-footer-legal">
-          <a href="#" className="lp-footer-link-sm">Privacy Policy</a>
-          <a href="#" className="lp-footer-link-sm">Terms of Service</a>
-          <a href="#" className="lp-footer-link-sm">Security</a>
+          <a href="mailto:support@pramukhdigital.com" className="lp-footer-link-sm">Security</a>
+          <Link to="/downloads" className="lp-footer-link-sm">Downloads</Link>
         </div>
       </div>
     </footer>

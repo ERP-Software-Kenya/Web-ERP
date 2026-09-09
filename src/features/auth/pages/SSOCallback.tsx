@@ -38,8 +38,7 @@ export default function SSOCallback() {
           const hasMembership = memberships && memberships.data && memberships.data.length > 0;
           
           if (hasMembership) {
-            // They are a returning user with an organization
-            navigate('/dashboard');
+            navigate('/onboarding/done');
           } else {
             // Pre-fill user data
             setData({

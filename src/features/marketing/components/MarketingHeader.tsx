@@ -1,17 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Download, Menu, X } from 'lucide-react';
 import { useOnboarding } from '../../onboarding/context/OnboardingContext';
+import { latestErpClientRelease } from '../../downloads/data/releases';
 
 interface Props {
   onScrollTo?: (id: string) => void;
 }
 
 const navItems = [
+  { label: 'Platform', id: 'platform' },
   { label: 'Modules', id: 'modules' },
-  { label: 'Features', id: 'features' },
-  { label: 'How It Works', id: 'how-it-works' },
+  { label: 'Operations', id: 'operations' },
   { label: 'Pricing', id: 'pricing' },
 ];
 
@@ -35,25 +36,27 @@ export default function MarketingHeader({ onScrollTo }: Props) {
   }, []);
 
   const handleNav = (id: string) => {
-    onScrollTo?.(id);
+    if (onScrollTo) {
+      onScrollTo(id);
+    } else {
+      navigate(`/#${id}`);
+    }
+    setMobileOpen(false);
+  };
+
+  const handleStart = () => {
+    goNext();
     setMobileOpen(false);
   };
 
   return (
     <header className={`lp-header${scrolled ? ' scrolled' : ''}`}>
       <div className="lp-header-inner">
-        {/* Logo */}
-        <motion.div
-          className="lp-header-logo"
-          initial={{ opacity: 0, x: -16 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.4 }}
-        >
-          <div className="lp-logo-icon">W</div>
-          <span>Web-ERP</span>
-        </motion.div>
+        <Link className="lp-header-logo" to="/">
+          <div className="lp-logo-icon">P</div>
+          <span>Pramukh Digital</span>
+        </Link>
 
-        {/* Desktop Nav */}
         <nav className="lp-header-nav" aria-label="Main navigation">
           {navItems.map((item, i) => (
             <motion.button
@@ -62,32 +65,32 @@ export default function MarketingHeader({ onScrollTo }: Props) {
               onClick={() => handleNav(item.id)}
               initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 + i * 0.05 }}
+              transition={{ delay: 0.08 + i * 0.04 }}
             >
               {item.label}
             </motion.button>
           ))}
+          <Link className="lp-nav-link lp-nav-link-anchor" to="/downloads">
+            Downloads
+          </Link>
         </nav>
 
-        {/* Actions */}
         <motion.div
           className="lp-header-actions"
           initial={{ opacity: 0, x: 16 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.4 }}
+          transition={{ duration: 0.35 }}
         >
-          <button
-            className="lp-btn-login"
-            onClick={() => navigate('/onboarding/step-1?mode=signin')}
-          >
-            Sign In
-          </button>
-          <button className="lp-btn-cta-sm" onClick={goNext}>
-            Start Free
+          <a className="lp-btn-download-sm" href={latestErpClientRelease.assets[0].url} download>
+            <Download size={16} />
+            <span>Download v{latestErpClientRelease.version}</span>
+          </a>
+          <button className="lp-btn-cta-sm" onClick={handleStart}>
+            Start trial
           </button>
           <button
             className="lp-hamburger"
-            onClick={() => setMobileOpen((o) => !o)}
+            onClick={() => setMobileOpen((open) => !open)}
             aria-label="Toggle menu"
             aria-expanded={mobileOpen}
           >
@@ -96,7 +99,6 @@ export default function MarketingHeader({ onScrollTo }: Props) {
         </motion.div>
       </div>
 
-      {/* Mobile Menu */}
       <AnimatePresence>
         {mobileOpen && (
           <motion.div
@@ -104,7 +106,7 @@ export default function MarketingHeader({ onScrollTo }: Props) {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.25, ease: 'easeInOut' }}
+            transition={{ duration: 0.2, ease: 'easeInOut' }}
           >
             {navItems.map((item) => (
               <button
@@ -115,16 +117,16 @@ export default function MarketingHeader({ onScrollTo }: Props) {
                 {item.label}
               </button>
             ))}
+            <Link className="lp-mobile-nav-link" to="/downloads" onClick={() => setMobileOpen(false)}>
+              Downloads
+            </Link>
             <div className="lp-mobile-actions">
-              <button
-                className="lp-btn-login"
-                style={{ display: 'block' }}
-                onClick={() => { navigate('/onboarding/step-1?mode=signin'); setMobileOpen(false); }}
-              >
-                Sign In
-              </button>
-              <button className="lp-btn-cta-sm" onClick={() => { goNext(); setMobileOpen(false); }}>
-                Start Free
+              <a className="lp-btn-download-sm" href={latestErpClientRelease.assets[0].url} download>
+                <Download size={16} />
+                Download client
+              </a>
+              <button className="lp-btn-cta-sm" onClick={handleStart}>
+                Start trial
               </button>
             </div>
           </motion.div>

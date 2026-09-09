@@ -60,7 +60,7 @@ export default function StepLayout({
       {/* Left */}
       <div className="left-panel">
         <div className="left-panel-inner">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+          <div className="onboarding-top-row">
             <ProgressBar />
             <ThemeToggle />
           </div>

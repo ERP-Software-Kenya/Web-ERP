@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useOnboarding } from '../context/OnboardingContext';
 import ThemeToggle from '../../theme/components/ThemeToggle';
+import ProgressBar from '../components/ProgressBar';
 
 interface Plan {
   id: 'starter' | 'growth' | 'enterprise';
@@ -139,6 +140,7 @@ export default function Step7Pricing() {
     <div className="pricing-page pricing-page-wrapper">
       <div className="pricing-top-bar">
         <button className="pricing-back pricing-back-btn" onClick={goBack} disabled={loading}>← Back</button>
+        <ProgressBar />
         <ThemeToggle />
       </div>
 

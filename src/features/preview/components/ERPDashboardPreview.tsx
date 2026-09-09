@@ -3,7 +3,7 @@ import {
   LayoutDashboard, Building2, Store, Package, Tag,
   Boxes, Truck, ShoppingCart, Receipt, FileText,
   CreditCard, Bell, Activity, Users, Settings,
-  ChevronRight, ChevronDown, Sun, CheckCircle2, Circle
+  ChevronRight, ChevronDown, Sun
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import '../styles/preview-override.css';
@@ -83,7 +83,7 @@ const NAV_GROUPS = [
 const BAR_HEIGHTS = [35, 55, 40, 75, 60, 85, 50, 70, 90, 65];
 const BAR2_HEIGHTS = [20, 35, 25, 45, 40, 55, 30, 50, 60, 40];
 
-export default function ERPDashboardPreview({ orgName, activeModules = [], currentStep = 1, userName }: ERPDashboardPreviewProps) {
+export default function ERPDashboardPreview({ orgName, activeModules = [], userName }: ERPDashboardPreviewProps) {
   const displayName = orgName.trim() || 'ERP System';
   const displayUserName = userName?.trim() || 'Demo User';
   const displayUserInitial = displayUserName.charAt(0).toUpperCase();
@@ -197,25 +197,6 @@ export default function ERPDashboardPreview({ orgName, activeModules = [], curre
           <motion.div variants={itemVariants}>
             <div className="erp-topbar-title">Dashboard</div>
             <div className="erp-topbar-greeting">Welcome back, {displayUserName} 👋</div>
-          </motion.div>
-
-          {/* Setup Checklist (Interactive based on currentStep) */}
-          <motion.div variants={itemVariants} style={{ background: 'var(--color-surface-2)', borderRadius: '12px', padding: '16px', marginBottom: '24px', border: '1px solid var(--color-border)' }}>
-            <h3 style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-text)', marginBottom: '12px' }}>Onboarding Progress</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <motion.div animate={{ opacity: currentStep >= 2 ? 1 : 0.5 }} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                {currentStep > 2 ? <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}><CheckCircle2 size={16} className="text-green-500" /></motion.div> : <Circle size={16} color="var(--color-text-muted)" />}
-                <span style={{ fontSize: '0.8125rem', color: currentStep > 2 ? 'var(--color-text)' : 'var(--color-text-muted)', textDecoration: currentStep > 2 ? 'line-through' : 'none', transition: 'all 0.3s ease' }}>Set Organization Details</span>
-              </motion.div>
-              <motion.div animate={{ opacity: currentStep >= 5 ? 1 : 0.5 }} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                {currentStep > 5 ? <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}><CheckCircle2 size={16} className="text-green-500" /></motion.div> : <Circle size={16} color="var(--color-text-muted)" />}
-                <span style={{ fontSize: '0.8125rem', color: currentStep > 5 ? 'var(--color-text)' : 'var(--color-text-muted)', textDecoration: currentStep > 5 ? 'line-through' : 'none', transition: 'all 0.3s ease' }}>Configure Modules</span>
-              </motion.div>
-              <motion.div animate={{ opacity: currentStep >= 6 ? 1 : 0.5 }} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                {currentStep > 6 ? <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}><CheckCircle2 size={16} className="text-green-500" /></motion.div> : <Circle size={16} color="var(--color-text-muted)" />}
-                <span style={{ fontSize: '0.8125rem', color: currentStep > 6 ? 'var(--color-text)' : 'var(--color-text-muted)', textDecoration: currentStep > 6 ? 'line-through' : 'none', transition: 'all 0.3s ease' }}>Select Pricing Plan</span>
-              </motion.div>
-            </div>
           </motion.div>
 
           {/* Stats */}

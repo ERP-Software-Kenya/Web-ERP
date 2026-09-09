@@ -82,7 +82,10 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     const initClerk = async () => {
       try {
         const CLERK_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY as string;
-        if (!CLERK_KEY) return;
+        if (!CLERK_KEY) {
+          if (mounted) setIsClerkLoaded(true);
+          return;
+        }
         const clerkInstance = new Clerk(CLERK_KEY);
         await clerkInstance.load();
         if (!mounted) return;

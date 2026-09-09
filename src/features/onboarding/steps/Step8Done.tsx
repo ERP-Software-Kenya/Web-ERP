@@ -1,10 +1,11 @@
 import React from 'react';
 import { useOnboarding } from '../context/OnboardingContext';
-import { Download, Globe } from 'lucide-react';
+import { Download } from 'lucide-react';
+import { latestErpClientRelease } from '../../downloads/data/releases';
 
 // Link to the GitHub Releases API to fetch the latest download
 const GITHUB_API_LATEST = 'https://api.github.com/repos/ERP-Software-Kenya/ERP-Client/releases/latest';
-const GITHUB_RELEASES_URL = 'https://github.com/ERP-Software-Kenya/ERP-Client/releases/latest';
+const LATEST_INSTALLER_URL = latestErpClientRelease.assets[0].url;
 
 export default function Step8Done() {
   const { data } = useOnboarding();
@@ -22,65 +23,13 @@ export default function Step8Done() {
         // Direct download
         window.location.href = exeAsset.browser_download_url;
       } else {
-        // Fallback to releases page
-        window.open(GITHUB_RELEASES_URL, '_blank');
+        window.location.href = LATEST_INSTALLER_URL;
       }
     } catch (err) {
       console.error('Failed to fetch latest release', err);
-      // Fallback
-      window.open(GITHUB_RELEASES_URL, '_blank');
+      window.location.href = LATEST_INSTALLER_URL;
     }
   };
-
-  // Dynamically generate action cards based on selected modules
-  const actionCards = [];
-  let primaryCtaText = "Access via Web Browser";
-
-  if (data.modules.includes('inventory')) {
-    actionCards.push({
-      icon: '📦',
-      iconBg: '#eff6ff',
-      title: 'Add your first product',
-      desc: 'Build your inventory catalog',
-    });
-    primaryCtaText = "Go to Inventory Dashboard";
-  }
-  if (data.modules.includes('sales') || data.modules.includes('accounting')) {
-    actionCards.push({
-      icon: '🧾',
-      iconBg: '#f0fdf4',
-      title: 'Create an invoice',
-      desc: 'Send your first professional invoice',
-    });
-    if (primaryCtaText === "Access via Web Browser") primaryCtaText = "Go to Sales & Invoicing";
-  }
-  if (data.modules.includes('crm')) {
-    actionCards.push({
-      icon: '👤',
-      iconBg: '#fdf4ff',
-      title: 'Add a customer',
-      desc: 'Start building your customer base',
-    });
-  }
-  if (data.modules.includes('hr')) {
-    actionCards.push({
-      icon: '👥',
-      iconBg: '#fffbeb',
-      title: 'Add your first employee',
-      desc: 'Set up your team and payroll',
-    });
-    if (primaryCtaText === "Access via Web Browser") primaryCtaText = "Go to HR Dashboard";
-  }
-
-  // Fallback if no specific actions were matched
-  if (actionCards.length === 0) {
-    actionCards.push({
-      icon: '⚙️',
-      iconBg: '#f1f5f9',
-      title: 'Configure Settings',
-      desc: 'Review your workspace configuration',
-    });
-  }
 
   return (
     <div className="done-page">
@@ -93,23 +42,33 @@ export default function Step8Done() {
 
         <h1 className="done-title">Your workspace is live!</h1>
         <p className="done-subtitle">
-          You're all set, {firstName}. Here's where to start with{' '}
-          <strong>{displayName}</strong>.
+          Congratulations, {firstName}. <strong>{displayName}</strong> is ready.
+          Download the desktop ERP client to start using sales, purchase,
+          inventory, reports, and branch operations.
         </p>
 
-        <div className="action-cards">
-          {actionCards.map(card => (
-            <div key={card.title} className="action-card done-action-card">
-              <div className="action-card-icon-wrap" style={{ background: card.iconBg }}>
-                {card.icon}
-              </div>
-              <div className="action-card-content">
-                <div className="action-card-title">{card.title}</div>
-                <div className="action-card-desc">{card.desc}</div>
-              </div>
-              <span className="action-card-arrow">→</span>
+        <div className="done-next-steps">
+          <div className="done-next-step">
+            <span>1</span>
+            <div>
+              <strong>Download the desktop app</strong>
+              <p>Install the latest Pramukh Digital ERP Client on your Windows machine.</p>
             </div>
-          ))}
+          </div>
+          <div className="done-next-step">
+            <span>2</span>
+            <div>
+              <strong>Sign in inside the desktop client</strong>
+              <p>Use the account you just created to access your configured workspace.</p>
+            </div>
+          </div>
+          <div className="done-next-step">
+            <span>3</span>
+            <div>
+              <strong>Run your branch operations</strong>
+              <p>Continue setup and daily work from the desktop ERP application.</p>
+            </div>
+          </div>
         </div>
 
         <div className="done-ctas">
@@ -123,19 +82,8 @@ export default function Step8Done() {
             Download Web-ERP Desktop App
           </button>
 
-          <a
-            id="btn-open-web"
-            className="btn-primary done-btn-primary"
-            href={import.meta.env.VITE_CLIENT_URL || "http://localhost:5173"}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Globe size={16} strokeWidth={2} />
-            {primaryCtaText}
-          </a>
-
           <p className="done-desktop-hint">
-            The desktop app is recommended for the best experience
+            Dashboard access is available only inside the desktop app.
           </p>
         </div>
       </div>
