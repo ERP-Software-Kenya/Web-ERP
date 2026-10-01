@@ -1,9 +1,10 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { OnboardingProvider, useOnboarding } from './features/onboarding/context/OnboardingContext';
 import { AnimatePresence } from 'framer-motion';
 import LandingPage from './features/marketing/pages/LandingPage';
+import DownloadsPage from './features/downloads/pages/DownloadsPage';
 import SSOCallback from './features/auth/pages/SSOCallback';
 import Step1Account from './features/onboarding/steps/Step1Account';
 import Step2OrgSetup from './features/onboarding/steps/Step2OrgSetup';
@@ -13,7 +14,6 @@ import Step5Modules from './features/onboarding/steps/Step5Modules';
 import Step6HowYouSell from './features/onboarding/steps/Step6HowYouSell';
 import Step7Pricing from './features/onboarding/steps/Step7Pricing';
 import Step8Done from './features/onboarding/steps/Step8Done';
-import Dashboard from './features/dashboard/pages/Dashboard';
 
 import { ThemeProvider } from './features/theme/context/ThemeContext';
 
@@ -32,7 +32,7 @@ function OnboardingFlow() {
           id="btn-exit-onboarding"
           onClick={() => {
             if (window.confirm('Exit onboarding? Your progress will be lost.')) {
-              navigate('/dashboard');
+              navigate('/');
             }
           }}
         >
@@ -43,7 +43,8 @@ function OnboardingFlow() {
       <AnimatePresence mode="wait" custom={direction}>
         <Routes location={location} key={location.pathname}>
           <Route path="/" element={<LandingPage />} />
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/downloads" element={<DownloadsPage />} />
+          <Route path="/dashboard" element={<Navigate to="/onboarding/done" replace />} />
           <Route path="/sso-callback" element={<SSOCallback />} />
           <Route path="/onboarding/step-1" element={<Step1Account />} />
           <Route path="/onboarding/step-2" element={<Step2OrgSetup />} />
