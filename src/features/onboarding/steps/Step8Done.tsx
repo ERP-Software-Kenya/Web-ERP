@@ -1,86 +1,49 @@
 import React from 'react';
 import { useOnboarding } from '../context/OnboardingContext';
-import { Download, Globe } from 'lucide-react';
+import { Download, Globe, ExternalLink } from 'lucide-react';
+import { useLatestRelease } from '../../shared/hooks/useLatestRelease';
 
-// Link to the GitHub Releases API to fetch the latest download
-const GITHUB_API_LATEST = 'https://api.github.com/repos/ERP-Software-Kenya/ERP-Client/releases/latest';
-const GITHUB_RELEASES_URL = 'https://github.com/ERP-Software-Kenya/ERP-Client/releases/latest';
+const WEB_CLIENT_URL = import.meta.env.VITE_CLIENT_URL
+  ? (import.meta.env.VITE_CLIENT_URL === 'http://localhost:5173' ? 'https://app.pramukhdigital.com' : import.meta.env.VITE_CLIENT_URL)
+  : 'https://app.pramukhdigital.com';
 
 export default function Step8Done() {
   const { data } = useOnboarding();
+  const { version, loading, handleDownload } = useLatestRelease();
   const displayName = data.orgName.trim() || 'Your Organization';
   const firstName = data.firstName.trim() || 'Admin';
 
-  const handleDownloadClick = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    try {
-      const response = await fetch(GITHUB_API_LATEST);
-      const release = await response.json();
-      const exeAsset = release.assets?.find((asset: any) => asset.name.endsWith('.exe'));
-      
-      if (exeAsset) {
-        // Direct download
-        window.location.href = exeAsset.browser_download_url;
-      } else {
-        // Fallback to releases page
-        window.open(GITHUB_RELEASES_URL, '_blank');
-      }
-    } catch (err) {
-      console.error('Failed to fetch latest release', err);
-      // Fallback
-      window.open(GITHUB_RELEASES_URL, '_blank');
-    }
-  };
-
-  // Dynamically generate action cards based on selected modules
-  const actionCards = [];
-  let primaryCtaText = "Access via Web Browser";
+  const actionCards: { icon: string; iconBg: string; title: string; desc: string }[] = [];
+  let primaryCtaText = 'Open Web Dashboard';
 
   if (data.modules.includes('inventory')) {
-    actionCards.push({
-      icon: '📦',
-      iconBg: '#eff6ff',
-      title: 'Add your first product',
-      desc: 'Build your inventory catalog',
-    });
-    primaryCtaText = "Go to Inventory Dashboard";
+    actionCards.push({ icon: '📦', iconBg: '#eff6ff', title: 'Add your first product', desc: 'Build your inventory catalog' });
+    primaryCtaText = 'Go to Inventory Dashboard';
   }
   if (data.modules.includes('sales') || data.modules.includes('accounting')) {
-    actionCards.push({
-      icon: '🧾',
-      iconBg: '#f0fdf4',
-      title: 'Create an invoice',
-      desc: 'Send your first professional invoice',
-    });
-    if (primaryCtaText === "Access via Web Browser") primaryCtaText = "Go to Sales & Invoicing";
+    actionCards.push({ icon: '🧾', iconBg: '#f0fdf4', title: 'Create an invoice', desc: 'Send your first professional invoice' });
+    if (primaryCtaText === 'Open Web Dashboard') primaryCtaText = 'Go to Sales & Invoicing';
+  }
+  if (data.modules.includes('fleet')) {
+    actionCards.push({ icon: '🚚', iconBg: '#fef3c7', title: 'Add your first vehicle', desc: 'Set up fleet management and GPS tracking' });
+    if (primaryCtaText === 'Open Web Dashboard') primaryCtaText = 'Go to Fleet Dashboard';
   }
   if (data.modules.includes('crm')) {
-    actionCards.push({
-      icon: '👤',
-      iconBg: '#fdf4ff',
-      title: 'Add a customer',
-      desc: 'Start building your customer base',
-    });
+    actionCards.push({ icon: '👤', iconBg: '#fdf4ff', title: 'Add a customer', desc: 'Start building your customer base' });
   }
   if (data.modules.includes('hr')) {
-    actionCards.push({
-      icon: '👥',
-      iconBg: '#fffbeb',
-      title: 'Add your first employee',
-      desc: 'Set up your team and payroll',
-    });
-    if (primaryCtaText === "Access via Web Browser") primaryCtaText = "Go to HR Dashboard";
+    actionCards.push({ icon: '👥', iconBg: '#fffbeb', title: 'Add your first employee', desc: 'Set up your team and payroll' });
+    if (primaryCtaText === 'Open Web Dashboard') primaryCtaText = 'Go to HR Dashboard';
+  }
+  if (actionCards.length === 0) {
+    actionCards.push({ icon: '⚙️', iconBg: '#f1f5f9', title: 'Configure Settings', desc: 'Review your workspace configuration' });
   }
 
-  // Fallback if no specific actions were matched
-  if (actionCards.length === 0) {
-    actionCards.push({
-      icon: '⚙️',
-      iconBg: '#f1f5f9',
-      title: 'Configure Settings',
-      desc: 'Review your workspace configuration',
-    });
-  }
+  const downloadLabel = loading
+    ? 'Preparing Download...'
+    : version && version !== 'Latest'
+      ? `Download Pramukh Digital ${version}`
+      : 'Download Pramukh Digital';
 
   return (
     <div className="done-page">
@@ -116,26 +79,29 @@ export default function Step8Done() {
           <button
             id="btn-download-desktop"
             className="btn-download"
-            onClick={handleDownloadClick}
-            style={{ cursor: 'pointer' }}
+            onClick={handleDownload}
+            disabled={loading}
+            style={{ cursor: loading ? 'wait' : 'pointer', opacity: loading ? 0.75 : 1 }}
           >
             <Download size={18} strokeWidth={2} />
-            Download Web-ERP Desktop App
+            {downloadLabel}
           </button>
 
           <a
             id="btn-open-web"
             className="btn-primary done-btn-primary"
-            href={import.meta.env.VITE_CLIENT_URL || "http://localhost:5173"}
+            href={WEB_CLIENT_URL}
             target="_blank"
             rel="noopener noreferrer"
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, textDecoration: 'none' }}
           >
             <Globe size={16} strokeWidth={2} />
             {primaryCtaText}
+            <ExternalLink size={14} strokeWidth={2} style={{ opacity: 0.7 }} />
           </a>
 
           <p className="done-desktop-hint">
-            The desktop app is recommended for the best experience
+            The desktop app is recommended for the best offline experience
           </p>
         </div>
       </div>
@@ -146,7 +112,7 @@ export default function Step8Done() {
           <div className="done-confetti">🎉</div>
           <div className="done-card-title">{displayName} is ready!</div>
           <div className="done-card-sub">
-            Your ERP workspace has been configured based on your preferences.
+            Your Pramukh Digital workspace has been configured based on your preferences.
           </div>
 
           <div className="done-quick-stats">
@@ -170,28 +136,34 @@ export default function Step8Done() {
           <div className="done-download-promo">
             <div className="done-download-promo-icon">💻</div>
             <div className="done-download-promo-text">
-              <strong>Get the Desktop App</strong>
-              Download for Windows, macOS, or Linux. Works offline.
+              <strong>
+                {loading
+                  ? 'Pramukh Digital Desktop'
+                  : version && version !== 'Latest'
+                    ? `Pramukh Digital ${version}`
+                    : 'Pramukh Digital Desktop'}
+              </strong>
+              Download for Windows. Works offline with full feature access.
             </div>
             <button
-              onClick={handleDownloadClick}
+              onClick={handleDownload}
               className="done-download-link"
-              style={{ background: 'transparent', border: 'none', padding: 0 }}
+              disabled={loading}
+              style={{
+                background: loading ? 'var(--color-text-muted)' : undefined,
+                cursor: loading ? 'wait' : 'pointer',
+              }}
             >
-              Download
+              {loading ? '...' : 'Download'}
             </button>
           </div>
 
           {data.modules.length > 0 && (
             <div className="done-modules-section">
-              <div className="done-modules-header">
-                Your configured modules
-              </div>
+              <div className="done-modules-header">Your configured modules</div>
               <div className="done-modules-container">
-                {data.modules.map((m: any) => (
-                  <span key={m} className="done-module-tag">
-                    {m}
-                  </span>
+                {data.modules.map((m: string) => (
+                  <span key={m} className="done-module-tag">{m}</span>
                 ))}
               </div>
             </div>

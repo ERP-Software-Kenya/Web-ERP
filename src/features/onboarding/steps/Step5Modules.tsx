@@ -2,15 +2,17 @@ import React, { useState } from 'react';
 import { useOnboarding } from '../context/OnboardingContext';
 import StepLayout from '../components/StepLayout';
 import { motion } from 'framer-motion';
-import { Package, ShoppingCart, Truck, Landmark, Users, Briefcase } from 'lucide-react';
+import { Package, ShoppingCart, Truck, Landmark, Users, Briefcase, BarChart3, Lock } from 'lucide-react';
 
 const MODULES = [
-  { id: 'inventory', name: 'Inventory Management', desc: 'Track stock, variants, and locations', icon: Package },
-  { id: 'sales', name: 'Sales & Invoicing', desc: 'Manage orders, quotes, and billing', icon: ShoppingCart },
-  { id: 'purchasing', name: 'Purchasing & POs', desc: 'Supplier management and restocks', icon: Truck },
-  { id: 'accounting', name: 'Financial Accounting', desc: 'Ledgers, P&L, and tax compliance', icon: Landmark },
-  { id: 'crm', name: 'CRM', desc: 'Customer tracking and interactions', icon: Users },
-  { id: 'hr', name: 'HR & Payroll', desc: 'Employee management and salaries', icon: Briefcase },
+  { id: 'inventory', name: 'Inventory & Warehouse', desc: 'Stock tracking, transfers, warehouse packing', icon: Package },
+  { id: 'sales', name: 'Sales & POS', desc: 'Invoicing, POS, quotations, orders', icon: ShoppingCart },
+  { id: 'fleet', name: 'Fleet Management', desc: 'Vehicles, GPS tracking, trips & dispatch', icon: Truck },
+  { id: 'purchasing', name: 'Purchasing & Bills', desc: 'Purchase orders, suppliers, bills', icon: Briefcase },
+  { id: 'accounting', name: 'Finance & Accounts', desc: 'Expenses, payments, creditors, debtors', icon: Landmark },
+  { id: 'crm', name: 'CRM & Customers', desc: 'Customer profiles, credit approvals', icon: Users },
+  { id: 'reports', name: 'Reports & Analytics', desc: 'KPI dashboards, audit logs, exports', icon: BarChart3 },
+  { id: 'admin', name: 'Admin & Roles', desc: 'Users, roles, branch pricing, access control', icon: Lock },
 ];
 
 export default function Step5Modules() {
@@ -38,8 +40,8 @@ export default function Step5Modules() {
 
   return (
     <StepLayout
-      title="Select initial modules"
-      subtitle="You can always add or remove these later."
+      title="Select your modules"
+      subtitle="Pick what your business needs. You can always add more later."
       onContinue={handleContinue}
       onBack={goBack}
     >
@@ -56,16 +58,24 @@ export default function Step5Modules() {
               className={`custom-module-card ${isSelected ? 'selected' : ''}`}
             >
               <div className="custom-module-icon-wrap">
-                <Icon size={18} color={isSelected ? '#fff' : 'var(--color-text-muted)'} />
+                <Icon size={18} color={isSelected ? 'var(--color-primary)' : 'var(--color-text-muted)'} />
               </div>
               <div style={{ textAlign: 'left', marginTop: '8px' }}>
-                <h3 className="custom-module-title">
-                  {m.name}
-                </h3>
-                <p className="custom-module-desc">
-                  {m.desc}
-                </p>
+                <h3 className="custom-module-title">{m.name}</h3>
+                <p className="custom-module-desc">{m.desc}</p>
               </div>
+              {isSelected && (
+                <div style={{
+                  position: 'absolute', top: 10, right: 10,
+                  width: 18, height: 18, borderRadius: '50%',
+                  background: 'var(--color-primary)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                    <path d="M2 5l2.5 2.5L8 3" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+              )}
             </motion.div>
           );
         })}
