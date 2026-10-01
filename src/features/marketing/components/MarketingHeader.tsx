@@ -10,11 +10,12 @@ interface Props {
 }
 
 const navItems = [
-  { label: 'Modules', id: 'modules' },
-  { label: 'Features', id: 'features' },
-  { label: 'How It Works', id: 'how-it-works' },
-  { label: 'FAQ', id: 'faq' },
-  { label: 'Pricing', id: 'pricing' },
+  { label: 'Modules', id: 'modules', type: 'scroll' },
+  { label: 'Features', id: 'features', type: 'scroll' },
+  { label: 'How It Works', id: 'how-it-works', type: 'scroll' },
+  { label: 'FAQ', id: 'faq', type: 'scroll' },
+  { label: 'Pricing', id: 'pricing', type: 'scroll' },
+  { label: 'Downloads', id: '/downloads', type: 'link' },
 ];
 
 export default function MarketingHeader({ onScrollTo }: Props) {
@@ -22,23 +23,25 @@ export default function MarketingHeader({ onScrollTo }: Props) {
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { version, loading } = useLatestRelease();
+  const { version, loading, handleDownload } = useLatestRelease();
 
   useEffect(() => {
     const shell = document.querySelector('.lp-shell');
     const target = shell ?? window;
-
     const handleScroll = () => {
       const y = shell ? shell.scrollTop : window.scrollY;
       setScrolled(y > 20);
     };
-
     target.addEventListener('scroll', handleScroll, { passive: true });
     return () => target.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const handleNav = (id: string) => {
-    onScrollTo?.(id);
+  const handleNav = (item: typeof navItems[0]) => {
+    if (item.type === 'link') {
+      navigate(item.id);
+    } else {
+      onScrollTo?.(item.id);
+    }
     setMobileOpen(false);
   };
 
@@ -70,7 +73,7 @@ export default function MarketingHeader({ onScrollTo }: Props) {
             <motion.button
               key={item.id}
               className="lp-nav-link"
-              onClick={() => handleNav(item.id)}
+              onClick={() => handleNav(item)}
               initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 + i * 0.05 }}
@@ -87,10 +90,14 @@ export default function MarketingHeader({ onScrollTo }: Props) {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.4 }}
         >
-          <Link to="/downloads" className="lp-btn-download-nav" title="Download desktop app">
+          <button
+            className="lp-btn-download-nav"
+            onClick={handleDownload}
+            title="Download latest desktop release"
+          >
             <Download size={14} />
             {versionLabel}
-          </Link>
+          </button>
           <button className="lp-btn-cta-sm" onClick={goNext}>
             Start Free
           </button>
@@ -119,21 +126,20 @@ export default function MarketingHeader({ onScrollTo }: Props) {
               <button
                 key={item.id}
                 className="lp-mobile-nav-link"
-                onClick={() => handleNav(item.id)}
+                onClick={() => handleNav(item)}
               >
                 {item.label}
               </button>
             ))}
             <div className="lp-mobile-actions">
-              <Link
-                to="/downloads"
+              <button
                 className="lp-btn-download-nav"
                 style={{ display: 'inline-flex' }}
-                onClick={() => setMobileOpen(false)}
+                onClick={() => { handleDownload(); setMobileOpen(false); }}
               >
                 <Download size={14} />
                 {versionLabel}
-              </Link>
+              </button>
               <button className="lp-btn-cta-sm" onClick={() => { goNext(); setMobileOpen(false); }}>
                 Start Free
               </button>
