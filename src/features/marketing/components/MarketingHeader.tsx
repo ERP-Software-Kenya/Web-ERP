@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, Download } from 'lucide-react';
 import { useOnboarding } from '../../onboarding/context/OnboardingContext';
+import { useLatestRelease } from '../../shared/hooks/useLatestRelease';
 
 interface Props {
   onScrollTo?: (id: string) => void;
@@ -17,8 +19,10 @@ const navItems = [
 
 export default function MarketingHeader({ onScrollTo }: Props) {
   const { goNext } = useOnboarding();
+  const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { version, loading } = useLatestRelease();
 
   useEffect(() => {
     const shell = document.querySelector('.lp-shell');
@@ -38,12 +42,20 @@ export default function MarketingHeader({ onScrollTo }: Props) {
     setMobileOpen(false);
   };
 
+  const versionLabel = loading
+    ? 'Download'
+    : version && version !== 'Latest'
+      ? `Download ${version}`
+      : 'Download';
+
   return (
     <header className={`lp-header${scrolled ? ' scrolled' : ''}`}>
       <div className="lp-header-inner">
         {/* Logo */}
         <motion.div
           className="lp-header-logo"
+          style={{ cursor: 'pointer' }}
+          onClick={() => navigate('/')}
           initial={{ opacity: 0, x: -16 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.4 }}
@@ -75,6 +87,10 @@ export default function MarketingHeader({ onScrollTo }: Props) {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.4 }}
         >
+          <Link to="/downloads" className="lp-btn-download-nav" title="Download desktop app">
+            <Download size={14} />
+            {versionLabel}
+          </Link>
           <button className="lp-btn-cta-sm" onClick={goNext}>
             Start Free
           </button>
@@ -109,6 +125,15 @@ export default function MarketingHeader({ onScrollTo }: Props) {
               </button>
             ))}
             <div className="lp-mobile-actions">
+              <Link
+                to="/downloads"
+                className="lp-btn-download-nav"
+                style={{ display: 'inline-flex' }}
+                onClick={() => setMobileOpen(false)}
+              >
+                <Download size={14} />
+                {versionLabel}
+              </Link>
               <button className="lp-btn-cta-sm" onClick={() => { goNext(); setMobileOpen(false); }}>
                 Start Free
               </button>
