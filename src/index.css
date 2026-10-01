@@ -101,7 +101,9 @@ body {
   height: 100%;
   padding: 32px 40px 28px;
   overflow-y: auto;
+  scrollbar-width: none;
 }
+.left-panel-inner::-webkit-scrollbar { display: none; }
 
 /* Right panel */
 .right-panel {
@@ -3103,6 +3105,10 @@ body {
   .lp-modules-grid { grid-template-columns: repeat(3, 1fr); }
 }
 
+@media (min-width: 1280px) {
+  .lp-modules-grid { grid-template-columns: repeat(4, 1fr); }
+}
+
 .lp-module-card {
   background: rgba(15,22,42,0.72);
   border: 1px solid rgba(255,255,255,0.07);
@@ -3866,4 +3872,392 @@ li.excluded .lp-feat-check { background: rgba(255,255,255,0.04); color: rgba(255
   .lp-hero-ctas { flex-direction: column; width: 100%; }
   .lp-hero-ctas .lp-btn-primary,
   .lp-hero-ctas .lp-btn-ghost { width: 100%; justify-content: center; }
+}
+
+/* ── Enhanced animations & polish ──────────────────────────────────────────── */
+
+/* Shimmer loading state */
+@keyframes lp-shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+
+.lp-badge-loading {
+  background: linear-gradient(
+    90deg,
+    rgba(79,122,248,0.08) 25%,
+    rgba(79,122,248,0.18) 50%,
+    rgba(79,122,248,0.08) 75%
+  );
+  background-size: 200% auto;
+  animation: lp-shimmer 1.8s linear infinite;
+  border-radius: 999px;
+  min-width: 160px;
+  height: 28px;
+}
+
+/* Scroll-to-top button */
+.scroll-top-btn {
+  position: fixed;
+  bottom: 32px;
+  right: 32px;
+  z-index: 200;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4f7af8, #7c5cfc);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.125rem;
+  font-weight: 700;
+  box-shadow: 0 4px 20px rgba(79,122,248,0.4);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.scroll-top-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 28px rgba(79,122,248,0.55);
+}
+
+/* Onboarding option card hover glow */
+.custom-option-card:hover:not(.selected) {
+  border-color: rgba(79,122,248,0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(79,122,248,0.1);
+}
+
+/* Module card selected glow */
+.custom-module-card.selected {
+  box-shadow: 0 0 0 3px rgba(79,122,248,0.2), 0 4px 20px rgba(79,122,248,0.15);
+}
+
+/* Done page — use theme variables so dark mode works */
+.done-left {
+  background: var(--color-surface, #fff);
+}
+
+.done-title {
+  color: var(--color-text, #0f172a);
+}
+
+.done-subtitle {
+  color: var(--color-text-muted, #64748b);
+}
+
+.action-card-title {
+  color: var(--color-text, #0f172a);
+}
+
+.action-card-desc {
+  color: var(--color-text-muted, #64748b);
+}
+
+/* Option cards font consistency */
+.custom-option-card {
+  font-family: var(--font);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+/* btn-download disabled state */
+.btn-download:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+/* Live pulse badge dot */
+.lp-badge-dot-live {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 8px #22c55e;
+  animation: lp-pulse 2s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+/* Newsletter success state */
+.lp-footer-newsletter-btn:disabled {
+  opacity: 0.9;
+  cursor: default;
+}
+
+/* Pricing page wrapper dark-mode heading */
+.pricing-page-wrapper .pricing-header-container h1 {
+  color: var(--color-text);
+}
+
+/* Progress step dots label tooltip on hover */
+[title] { cursor: default; }
+
+/* ── Feature Showcase Tabs ─────────────────────────────────────── */
+.lp-feature-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 40px;
+}
+
+.lp-feature-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: rgba(15,22,42,0.65);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 999px;
+  color: rgba(176,190,220,0.65);
+  font-size: 0.875rem;
+  font-weight: 500;
+  font-family: var(--font);
+  cursor: pointer;
+  transition: all 0.22s;
+}
+
+.lp-feature-tab-btn:hover {
+  border-color: rgba(255,255,255,0.16);
+  color: rgba(240,244,255,0.88);
+}
+
+.lp-feature-tab-btn.active {
+  background: rgba(79,122,248,0.12);
+  border-color: var(--tab-color, rgba(79,122,248,0.4));
+  color: #fff;
+  font-weight: 600;
+}
+
+.lp-feature-tab-content {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 48px;
+  align-items: center;
+}
+
+@media (min-width: 900px) {
+  .lp-feature-tab-content {
+    grid-template-columns: 1fr 1fr;
+    gap: 64px;
+  }
+}
+
+.lp-feat-left {
+  display: flex;
+  flex-direction: column;
+}
+
+.lp-feat-icon-wrap {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  flex-shrink: 0;
+}
+
+.lp-feat-headline {
+  font-size: clamp(1.25rem, 2.5vw, 1.75rem);
+  font-weight: 800;
+  color: #fff;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  margin-bottom: 14px;
+}
+
+.lp-feat-desc {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: rgba(176,190,220,0.72);
+  margin-bottom: 24px;
+}
+
+.lp-feat-highlights {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.lp-feat-highlight-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.9375rem;
+  color: rgba(240,244,255,0.82);
+}
+
+.lp-feat-highlight-dot {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.lp-feat-cta {
+  display: inline-flex !important;
+  width: auto !important;
+  align-self: flex-start;
+}
+
+.lp-feat-right {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Feature Preview Card */
+.lp-feat-preview {
+  width: 100%;
+  max-width: 480px;
+  background: rgba(10,15,30,0.92);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 24px 72px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.04);
+}
+
+.lp-feat-preview-topbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  background: rgba(0,0,0,0.22);
+}
+
+.lp-feat-preview-title {
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.35);
+  font-family: 'Courier New', monospace;
+}
+
+.lp-feat-preview-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1px;
+  background: rgba(255,255,255,0.04);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.lp-feat-preview-stat {
+  background: rgba(8,12,24,0.9);
+  padding: 16px 18px;
+}
+
+.lp-feat-preview-stat-label {
+  font-size: 0.6rem;
+  color: rgba(255,255,255,0.3);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 4px;
+}
+
+.lp-feat-preview-stat-value {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: rgba(240,244,255,0.92);
+  margin-bottom: 2px;
+}
+
+.lp-feat-preview-stat-sub {
+  font-size: 0.65rem;
+  color: #34d399;
+  font-weight: 600;
+}
+
+.lp-feat-preview-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 5px;
+  height: 72px;
+  padding: 16px 18px 10px;
+}
+
+.lp-feat-preview-bar {
+  flex: 1;
+  background: var(--bar-color, #4f7af8);
+  opacity: 0.65;
+  border-radius: 3px 3px 0 0;
+  min-width: 6px;
+  transform-origin: bottom;
+}
+
+.lp-feat-preview-bar:last-child { opacity: 1; }
+
+/* ── FAQ Section ────────────────────────────────────────────────── */
+.lp-faq-grid {
+  max-width: 800px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.lp-faq-item {
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+
+.lp-faq-item:first-child {
+  border-top: 1px solid rgba(255,255,255,0.07);
+}
+
+.lp-faq-question {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 4px;
+  background: transparent;
+  border: none;
+  color: rgba(240,244,255,0.88);
+  font-size: 1rem;
+  font-weight: 600;
+  font-family: var(--font);
+  cursor: pointer;
+  text-align: left;
+  transition: color 0.2s;
+}
+
+.lp-faq-question:hover { color: #fff; }
+
+.lp-faq-question svg { flex-shrink: 0; color: rgba(176,190,220,0.5); }
+
+.lp-faq-answer {
+  font-size: 0.9375rem;
+  line-height: 1.72;
+  color: rgba(176,190,220,0.68);
+  padding: 0 4px 20px;
+}
+
+.lp-faq-contact-link {
+  background: transparent;
+  border: none;
+  color: #7aa3fb;
+  font-size: inherit;
+  font-family: var(--font);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  padding: 0;
+}
+
+.lp-faq-contact-link:hover { color: #4f7af8; }
+
+/* ── Responsive tweaks for new sections ─────────────────────────── */
+@media (max-width: 640px) {
+  .lp-feature-tabs { gap: 6px; }
+  .lp-feature-tab-btn { padding: 8px 14px; font-size: 0.8125rem; }
+  .lp-feat-headline { font-size: 1.25rem; }
+  .lp-faq-question { font-size: 0.9375rem; }
 }

@@ -1,9 +1,10 @@
 import React from 'react';
 import {
-  LayoutDashboard, Building2, Store, Package, Tag,
+  LayoutDashboard, Building2, Package,
   Boxes, Truck, ShoppingCart, Receipt, FileText,
   CreditCard, Bell, Activity, Users, Settings,
-  ChevronRight, ChevronDown, Sun, CheckCircle2, Circle
+  ChevronRight, ChevronDown, Sun, CheckCircle2, Circle,
+  BarChart3, MapPin, Briefcase, Lock, Navigation,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import '../styles/preview-override.css';
@@ -33,62 +34,68 @@ interface ERPDashboardPreviewProps {
   userName?: string;
 }
 
-const ALL_MODULES = ['Inventory', 'Invoices', 'Customers', 'Suppliers', 'Purchase Orders', 'Expenses', 'Reports', 'Orders'];
+const ALL_MODULES = ['Inventory', 'Sales & POS', 'Fleet', 'Purchasing', 'Finance', 'CRM', 'Reports', 'Admin'];
 
 const NAV_GROUPS = [
   {
     label: 'Overview',
     items: [
       { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    ]
+    ],
   },
   {
-    label: 'Master Data',
+    label: 'Sales',
     items: [
-      { id: 'organizations', label: 'Organizations', icon: Building2 },
-      { id: 'stores', label: 'Stores', icon: Store },
+      { id: 'sales', label: 'Sales & POS', icon: ShoppingCart },
+      { id: 'quotations', label: 'Quotations', icon: FileText },
+      { id: 'invoices', label: 'Invoices', icon: Receipt },
+      { id: 'customers', label: 'Customers', icon: Users },
+    ],
+  },
+  {
+    label: 'Inventory',
+    items: [
+      { id: 'inventory', label: 'Stock', icon: Boxes },
+      { id: 'transfers', label: 'Transfers', icon: Navigation },
       { id: 'products', label: 'Products', icon: Package },
-      { id: 'categories', label: 'Categories', icon: Tag },
-    ]
+    ],
   },
   {
-    label: 'Operations',
+    label: 'Fleet',
     items: [
-      { id: 'inventory', label: 'Inventory', icon: Boxes },
-      { id: 'suppliers', label: 'Suppliers', icon: Truck },
-      { id: 'purchase-orders', label: 'Purchase Orders', icon: ShoppingCart },
-      { id: 'orders', label: 'Orders', icon: ShoppingCart },
-    ]
+      { id: 'fleet', label: 'Live Fleet Map', icon: MapPin },
+      { id: 'vehicles', label: 'Vehicles', icon: Truck },
+      { id: 'trips', label: 'Trips & Dispatch', icon: Navigation },
+    ],
   },
   {
-    label: 'Finance',
+    label: 'Purchasing',
     items: [
+      { id: 'purchase-orders', label: 'Purchase Orders', icon: Briefcase },
       { id: 'bills', label: 'Bills', icon: Receipt },
-      { id: 'invoices', label: 'Invoices', icon: FileText },
-      { id: 'expenses', label: 'Expenses', icon: CreditCard },
-      { id: 'reports', label: 'Reports', icon: FileText },
-    ]
+      { id: 'suppliers', label: 'Suppliers', icon: Building2 },
+    ],
   },
   {
-    label: 'System',
+    label: 'Finance & Admin',
     items: [
-      { id: 'notifications', label: 'Notifications', icon: Bell },
+      { id: 'expenses', label: 'Expenses', icon: CreditCard },
+      { id: 'reports', label: 'Reports', icon: BarChart3 },
+      { id: 'users', label: 'Users & Roles', icon: Lock },
       { id: 'activity-logs', label: 'Activity Logs', icon: Activity },
-      { id: 'users', label: 'Users', icon: Users },
-      { id: 'settings', label: 'Settings', icon: Settings },
-    ]
-  }
+    ],
+  },
 ];
 
 const BAR_HEIGHTS = [35, 55, 40, 75, 60, 85, 50, 70, 90, 65];
 const BAR2_HEIGHTS = [20, 35, 25, 45, 40, 55, 30, 50, 60, 40];
 
 export default function ERPDashboardPreview({ orgName, activeModules = [], currentStep = 1, userName }: ERPDashboardPreviewProps) {
-  const displayName = orgName.trim() || 'ERP System';
+  const displayName = orgName.trim() || 'Pramukh Digital';
   const displayUserName = userName?.trim() || 'Demo User';
   const displayUserInitial = displayUserName.charAt(0).toUpperCase();
 
-  // Dynamic Stats Generation based on active modules
+  // Dynamic stats based on selected modules
   let stats = [
     { label: 'Total Revenue', value: 'KSh 248K', change: '+12.4%' },
     { label: 'Invoices Sent', value: '134', change: '+8.2%' },
@@ -96,19 +103,19 @@ export default function ERPDashboardPreview({ orgName, activeModules = [], curre
     { label: 'Active Customers', value: '89', change: '+5.7%' },
   ];
 
-  if (activeModules.includes('hr')) {
-    stats[0] = { label: 'Total Employees', value: '42', change: '+2' };
-    stats[1] = { label: 'Payroll Run', value: 'KSh 1.2M', change: 'On Time' };
+  if (activeModules.includes('fleet')) {
+    stats[1] = { label: 'Fleet Active', value: '7 / 9', change: 'Live' };
+    stats[2] = { label: 'Trips Today', value: '23', change: '+5' };
   }
   if (activeModules.includes('inventory')) {
     stats[2] = { label: 'Stock Items', value: '3,450', change: '+12%' };
     stats[3] = { label: 'Low Stock Alerts', value: '14', change: '-2' };
   }
-  if (activeModules.includes('crm')) {
+  if (activeModules.includes('purchasing')) {
+    stats[1] = { label: 'Open POs', value: '18', change: 'Pending' };
+  }
+  if (activeModules.includes('crm') || activeModules.includes('sales')) {
     stats[3] = { label: 'Active Customers', value: '342', change: '+15.2%' };
-    if (!activeModules.includes('hr')) {
-       stats[1] = { label: 'New Leads', value: '45', change: '+8' };
-    }
   }
 
   return (
@@ -116,7 +123,7 @@ export default function ERPDashboardPreview({ orgName, activeModules = [], curre
       {/* Sidebar mimicking ERP-Client Sidebar.tsx */}
       <aside className="erp-sidebar">
         <div className="erp-logo-area">
-          <div className="erp-logo-icon">E</div>
+          <div className="erp-logo-icon">P</div>
           <span className="erp-org-name">{displayName}</span>
         </div>
 
@@ -271,8 +278,8 @@ export default function ERPDashboardPreview({ orgName, activeModules = [], curre
               <div className="recent-list">
                 {[
                   { label: 'Invoice #1024', value: 'KSh 12,400' },
+                  { label: 'Fleet Trip #T-88', value: 'Nairobi → Mombasa' },
                   { label: 'PO #0033', value: 'KSh 4,800' },
-                  { label: 'Expense', value: 'KSh 950' },
                   { label: 'New Customer', value: 'Nile Corp' },
                 ].map((item, idx) => (
                   <motion.div 

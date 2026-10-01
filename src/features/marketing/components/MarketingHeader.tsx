@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
 import { useOnboarding } from '../../onboarding/context/OnboardingContext';
@@ -12,12 +11,12 @@ const navItems = [
   { label: 'Modules', id: 'modules' },
   { label: 'Features', id: 'features' },
   { label: 'How It Works', id: 'how-it-works' },
+  { label: 'FAQ', id: 'faq' },
   { label: 'Pricing', id: 'pricing' },
 ];
 
 export default function MarketingHeader({ onScrollTo }: Props) {
   const { goNext } = useOnboarding();
-  const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -49,8 +48,8 @@ export default function MarketingHeader({ onScrollTo }: Props) {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.4 }}
         >
-          <div className="lp-logo-icon">W</div>
-          <span>Web-ERP</span>
+          <div className="lp-logo-icon">P</div>
+          <span>Pramukh Digital</span>
         </motion.div>
 
         {/* Desktop Nav */}
@@ -76,12 +75,6 @@ export default function MarketingHeader({ onScrollTo }: Props) {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.4 }}
         >
-          <button
-            className="lp-btn-login"
-            onClick={() => navigate('/onboarding/step-1?mode=signin')}
-          >
-            Sign In
-          </button>
           <button className="lp-btn-cta-sm" onClick={goNext}>
             Start Free
           </button>
@@ -116,13 +109,6 @@ export default function MarketingHeader({ onScrollTo }: Props) {
               </button>
             ))}
             <div className="lp-mobile-actions">
-              <button
-                className="lp-btn-login"
-                style={{ display: 'block' }}
-                onClick={() => { navigate('/onboarding/step-1?mode=signin'); setMobileOpen(false); }}
-              >
-                Sign In
-              </button>
               <button className="lp-btn-cta-sm" onClick={() => { goNext(); setMobileOpen(false); }}>
                 Start Free
               </button>

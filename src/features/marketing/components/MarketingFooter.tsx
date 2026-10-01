@@ -1,17 +1,28 @@
-import React from 'react';
-import { Twitter, Linkedin, Github, ArrowRight, MapPin } from 'lucide-react';
+import React, { useState } from 'react';
+import { Twitter, Linkedin, Github, ArrowRight, MapPin, Check } from 'lucide-react';
 
 interface Props {
   onScrollTo?: (id: string) => void;
 }
 
 export default function MarketingFooter({ onScrollTo }: Props) {
+  const [email, setEmail] = useState('');
+  const [subscribed, setSubscribed] = useState(false);
+
+  const handleSubscribe = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.includes('@')) return;
+    setSubscribed(true);
+    setEmail('');
+    setTimeout(() => setSubscribed(false), 4000);
+  };
+
   const productLinks = [
     { label: 'Inventory Management', id: 'modules' },
-    { label: 'Sales & Invoicing', id: 'modules' },
-    { label: 'Financial Accounting', id: 'modules' },
-    { label: 'CRM', id: 'modules' },
-    { label: 'HR & Payroll', id: 'modules' },
+    { label: 'Sales & POS', id: 'modules' },
+    { label: 'Fleet Management', id: 'modules' },
+    { label: 'Multi-Location & Branches', id: 'modules' },
+    { label: 'Reports & Analytics', id: 'modules' },
     { label: 'Pricing', id: 'pricing' },
   ];
 
@@ -37,30 +48,39 @@ export default function MarketingFooter({ onScrollTo }: Props) {
         {/* Brand column */}
         <div className="lp-footer-brand">
           <div className="lp-header-logo" style={{ marginBottom: 16 }}>
-            <div className="lp-logo-icon">W</div>
-            <span style={{ color: '#fff', fontSize: '1.1rem', fontWeight: 700 }}>Web-ERP</span>
+            <div className="lp-logo-icon">P</div>
+            <span style={{ color: '#fff', fontSize: '1.1rem', fontWeight: 700 }}>Pramukh Digital</span>
           </div>
           <p className="lp-footer-tagline">
-            The unified operating system for modern commerce.
-            Scale your inventory, sales, and operations on a single architecture.
+            The unified business management platform for modern commerce.
+            Inventory, sales, fleet, and finance — on one architecture.
           </p>
           <div className="lp-footer-location">
             <MapPin size={13} />
-            Built for Africa. Available worldwide.
+            Built for growing businesses. Available worldwide.
           </div>
           <div className="lp-footer-newsletter">
             <p className="lp-footer-newsletter-label">Stay in the loop</p>
-            <div className="lp-footer-newsletter-row">
+            <form className="lp-footer-newsletter-row" onSubmit={handleSubscribe}>
               <input
                 type="email"
-                placeholder="Enter your email"
+                placeholder={subscribed ? '✓ Subscribed!' : 'Enter your email'}
                 className="lp-footer-newsletter-input"
                 aria-label="Email for newsletter"
+                value={subscribed ? '' : email}
+                onChange={e => setEmail(e.target.value)}
+                disabled={subscribed}
+                style={{ color: subscribed ? '#34d399' : undefined }}
               />
-              <button className="lp-footer-newsletter-btn" aria-label="Subscribe">
-                <ArrowRight size={16} />
+              <button
+                type="submit"
+                className="lp-footer-newsletter-btn"
+                aria-label="Subscribe"
+                disabled={subscribed}
+              >
+                {subscribed ? <Check size={16} /> : <ArrowRight size={16} />}
               </button>
-            </div>
+            </form>
           </div>
         </div>
 
@@ -102,7 +122,7 @@ export default function MarketingFooter({ onScrollTo }: Props) {
       {/* Bottom bar */}
       <div className="lp-footer-bottom">
         <div className="lp-footer-copyright">
-          © {new Date().getFullYear()} Web-ERP Technologies Inc. All rights reserved.
+          © {new Date().getFullYear()} Pramukh Digital. All rights reserved.
         </div>
 
         <div className="lp-footer-social">

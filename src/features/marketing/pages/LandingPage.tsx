@@ -1,12 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, useInView, useMotionValue, useSpring } from 'framer-motion';
+import { motion, useInView, useMotionValue, useSpring, AnimatePresence } from 'framer-motion';
 import {
   ArrowRight, Package, ShoppingCart, Truck, Building2, Users, Briefcase,
-  Check, Star, Globe, Zap, Shield, Database, ChevronRight, Play,
-  BarChart3, TrendingUp, Cpu, Lock,
+  Check, Star, Globe, Shield, Database, ChevronRight, Play,
+  BarChart3, TrendingUp, Cpu, Lock, MapPin, FileText,
+  Radio, ClipboardList, Activity, Plus,
+  Receipt, CreditCard, Navigation, Boxes, Tag, Bell,
 } from 'lucide-react';
 import { useOnboarding } from '../../onboarding/context/OnboardingContext';
+import { useLatestRelease } from '../../shared/hooks/useLatestRelease';
 import MarketingHeader from '../components/MarketingHeader';
 import MarketingFooter from '../components/MarketingFooter';
 
@@ -17,16 +20,11 @@ function Counter({ value, suffix = '' }: { value: number; suffix?: string }) {
   const motionValue = useMotionValue(0);
   const springValue = useSpring(motionValue, { duration: 1800, bounce: 0 });
   const [display, setDisplay] = useState(0);
-
-  useEffect(() => {
-    if (inView) motionValue.set(value);
-  }, [inView, motionValue, value]);
-
+  useEffect(() => { if (inView) motionValue.set(value); }, [inView, motionValue, value]);
   useEffect(() => {
     const unsub = springValue.on('change', (v) => setDisplay(Math.round(v)));
     return unsub;
   }, [springValue]);
-
   return <span ref={ref}>{display}{suffix}</span>;
 }
 
@@ -34,72 +32,244 @@ function Counter({ value, suffix = '' }: { value: number; suffix?: string }) {
 const modules = [
   {
     icon: Package,
-    name: 'Inventory Management',
-    desc: 'Real-time multi-location stock tracking, automated movements, low-stock alerts, and seamless transfers between branches.',
+    name: 'Inventory & Warehouse',
+    desc: 'Real-time multi-location stock tracking, automated movements, warehouse packing workflows, and stock transfer management across all branches.',
     color: '#4f7af8',
-    features: ['Multi-location tracking', 'Stock movements', 'Automated alerts', 'Transfer management'],
+    features: ['Multi-location stock tracking', 'Warehouse packing queues', 'Stock transfers & requests', 'Unpublished product control'],
   },
   {
     icon: ShoppingCart,
-    name: 'Sales & Invoicing',
-    desc: 'Generate professional quotes and invoices, accept payments, and manage your entire sales pipeline from one unified view.',
+    name: 'Sales, POS & Quotations',
+    desc: 'Full Point-of-Sale, professional quotation builder, invoice generation, sales returns, and credit approval workflows — all connected.',
     color: '#22c55e',
-    features: ['Invoice generation', 'Payment processing', 'Sales pipeline', 'Credit management'],
+    features: ['Point of Sale (POS)', 'Quotation → Order → Invoice', 'Credit approvals & limits', 'Sales & item returns'],
   },
   {
     icon: Truck,
-    name: 'Purchasing & POs',
-    desc: 'Streamline procurement with automated purchase orders, supplier management, and full vendor cost tracking.',
+    name: 'Fleet Management',
+    desc: 'Live GPS vehicle tracking, trip planning, driver management, dispatch center operations, maintenance scheduling, and fleet expense tracking.',
     color: '#f59e0b',
-    features: ['Purchase orders', 'Supplier database', 'Vendor management', 'Cost tracking'],
+    features: ['Live GPS fleet map', 'Dispatch center & trips', 'Driver & vehicle management', 'Maintenance & fleet expenses'],
   },
   {
     icon: Building2,
-    name: 'Financial Accounting',
-    desc: 'Complete double-entry bookkeeping, real-time P&L, cash flow tracking, and exportable financial reports in Excel or PDF.',
+    name: 'Multi-Location & Branches',
+    desc: 'Manage multiple branches, warehouses and locations with branch-specific pricing, consolidated stock views, and organisation-level controls.',
     color: '#a855f7',
-    features: ['Ledger management', 'P&L reports', 'Expense tracking', 'Export to Excel/PDF'],
-  },
-  {
-    icon: Users,
-    name: 'CRM',
-    desc: 'Manage customer relationships, track interaction history, handle credit approvals, and nurture your client base effectively.',
-    color: '#06b6d4',
-    features: ['Customer profiles', 'Interaction history', 'Credit approvals', 'Sales tracking'],
+    features: ['Branch pricing control', 'Location & warehouse mgmt', 'Stock requests by branch', 'Org hierarchy management'],
   },
   {
     icon: Briefcase,
-    name: 'HR & Payroll',
-    desc: 'Manage your team, define roles and permissions, process payroll, and maintain complete employee records.',
+    name: 'Purchasing & Procurement',
+    desc: 'End-to-end procurement: purchase orders, bills, supplier management, purchase returns, and a BlackStock system for special procurement flows.',
+    color: '#06b6d4',
+    features: ['Purchase orders & receipts', 'Supplier management', 'Bills & purchase returns', 'BlackStock procurement'],
+  },
+  {
+    icon: CreditCard,
+    name: 'Finance & Accounts',
+    desc: 'Track all business finances: expenses, payment transactions, creditors and debtors ledgers, with exportable reports in Excel or PDF.',
     color: '#f43f5e',
-    features: ['Employee records', 'Role management', 'Payroll processing', 'Access control'],
+    features: ['Creditors & debtors ledger', 'Expense tracking', 'Payment transactions', 'Export to Excel/PDF'],
+  },
+  {
+    icon: BarChart3,
+    name: 'Reports & Analytics',
+    desc: 'Configurable report generation, activity audit logs, report generation history, and real-time KPI dashboards across every module.',
+    color: '#10b981',
+    features: ['Report generation engine', 'Activity & audit logs', 'Sales & inventory KPIs', 'Report generation history'],
+  },
+  {
+    icon: Lock,
+    name: 'Admin, Roles & Access',
+    desc: 'Granular role-based access, page-level permission control, user management, tax configuration, and platform-wide settings.',
+    color: '#6366f1',
+    features: ['Role-based access control', 'Page-level permissions', 'Tax & platform config', 'Notification settings'],
+  },
+];
+
+const FEATURE_TABS = [
+  {
+    id: 'inventory',
+    label: 'Inventory',
+    icon: Package,
+    color: '#4f7af8',
+    headline: 'Complete inventory intelligence across every location',
+    desc: 'From raw stock intake to warehouse packing to branch transfers — every movement is logged, auditable, and real-time. Never lose track of a single unit.',
+    highlights: [
+      { icon: Boxes, text: 'Multi-location stock with real-time sync' },
+      { icon: ArrowRight, text: 'Warehouse packing queues with picker workflows' },
+      { icon: Navigation, text: 'Stock transfer requests between branches' },
+      { icon: Tag, text: 'Unpublished product drafts before going live' },
+      { icon: ClipboardList, text: 'Full product movement & log history' },
+    ],
+    preview: {
+      title: 'Inventory Dashboard',
+      stats: [
+        { l: 'Total SKUs', v: '4,891', c: '+124 this week' },
+        { l: 'Low Stock', v: '14', c: 'Alerts active' },
+        { l: 'In Transit', v: '38', c: 'Transfers' },
+        { l: 'Packing Queue', v: '12', c: 'Pending' },
+      ],
+    },
+  },
+  {
+    id: 'sales',
+    label: 'Sales & POS',
+    icon: ShoppingCart,
+    color: '#22c55e',
+    headline: 'From quotation to payment — the complete sales cycle',
+    desc: 'Build quotations, convert to orders, raise invoices, process payments at POS, and manage credit all from one unified interface. No data silos.',
+    highlights: [
+      { icon: ShoppingCart, text: 'Full-featured Point of Sale (POS)' },
+      { icon: FileText, text: 'Professional quotation builder' },
+      { icon: Receipt, text: 'Quotation → Order → Invoice flow' },
+      { icon: Shield, text: 'Credit approval workflow with limits' },
+      { icon: ArrowRight, text: 'Sales & item returns management' },
+    ],
+    preview: {
+      title: 'Sales Overview',
+      stats: [
+        { l: 'Today Sales', v: 'KSh 284K', c: '+18%' },
+        { l: 'Open Quotes', v: '47', c: 'Pending' },
+        { l: 'POS Sessions', v: '3', c: 'Active' },
+        { l: 'Credit Approvals', v: '8', c: 'Pending' },
+      ],
+    },
+  },
+  {
+    id: 'fleet',
+    label: 'Fleet',
+    icon: Truck,
+    color: '#f59e0b',
+    headline: 'Live fleet intelligence — from GPS to dispatch',
+    desc: 'Track every vehicle in real-time on a live map, plan and execute trips, manage your driver roster, run a full dispatch center, and monitor maintenance alerts.',
+    highlights: [
+      { icon: MapPin, text: 'Live GPS vehicle tracking map' },
+      { icon: Navigation, text: 'Trip planning & dispatch center' },
+      { icon: Users, text: 'Driver roster & assignment management' },
+      { icon: Activity, text: 'Maintenance schedules & alerts' },
+      { icon: CreditCard, text: 'Fleet expenses & cost tracking' },
+    ],
+    preview: {
+      title: 'Fleet Live View',
+      stats: [
+        { l: 'Active Vehicles', v: '7/9', c: 'On road' },
+        { l: 'Trips Today', v: '23', c: '+5 planned' },
+        { l: 'Pending Maintenance', v: '2', c: 'Due soon' },
+        { l: 'Fleet Cost MTD', v: 'KSh 42K', c: '-8% vs LM' },
+      ],
+    },
+  },
+  {
+    id: 'purchasing',
+    label: 'Purchasing',
+    icon: Briefcase,
+    color: '#06b6d4',
+    headline: 'Complete procurement from PO to warehouse receipt',
+    desc: 'Create purchase orders, receive goods into the warehouse, manage supplier relationships, track bills, and handle the full BlackStock procurement workflow.',
+    highlights: [
+      { icon: FileText, text: 'Purchase orders with approval flows' },
+      { icon: Package, text: 'Goods receipt directly into stock' },
+      { icon: Users, text: 'Supplier database & performance tracking' },
+      { icon: Receipt, text: 'Bills management & purchase returns' },
+      { icon: Database, text: 'BlackStock special procurement system' },
+    ],
+    preview: {
+      title: 'Purchasing Overview',
+      stats: [
+        { l: 'Open POs', v: '18', c: 'Pending receipt' },
+        { l: 'Pending Bills', v: 'KSh 1.2M', c: '12 bills' },
+        { l: 'Suppliers', v: '84', c: 'Active' },
+        { l: 'Returns', v: '3', c: 'In progress' },
+      ],
+    },
+  },
+  {
+    id: 'reports',
+    label: 'Reports',
+    icon: BarChart3,
+    color: '#10b981',
+    headline: 'Every metric, every log, every export — on demand',
+    desc: 'Generate scheduled or on-demand reports across all modules. Full audit trail of every report generated, activity logs per user, and KPI dashboards.',
+    highlights: [
+      { icon: BarChart3, text: 'Cross-module report generation engine' },
+      { icon: ClipboardList, text: 'Report generation history & logs' },
+      { icon: Activity, text: 'User-level activity audit trail' },
+      { icon: Database, text: 'Export to Excel, PDF, CSV' },
+      { icon: Bell, text: 'Scheduled report delivery' },
+    ],
+    preview: {
+      title: 'Analytics Dashboard',
+      stats: [
+        { l: 'Reports Run', v: '1,240', c: 'This month' },
+        { l: 'Active Dashboards', v: '6', c: 'Shared' },
+        { l: 'Audit Events', v: '28.4K', c: 'All time' },
+        { l: 'Last Export', v: '2h ago', c: 'Sales PDF' },
+      ],
+    },
+  },
+];
+
+const FAQ_ITEMS = [
+  {
+    q: 'Can I run Pramukh Digital on Windows without internet?',
+    a: 'Yes. The desktop app works offline for core operations — POS, inventory, order management. Data syncs automatically when you reconnect. The web version requires an internet connection.',
+  },
+  {
+    q: 'How does multi-branch pricing work?',
+    a: 'You set a base price at the product level, then apply branch-specific overrides. Each branch sees and sells at its configured price. Stock requests flow between branches with full approval controls.',
+  },
+  {
+    q: 'Does the fleet module include live GPS tracking?',
+    a: 'Yes. The Fleet module includes a Live Fleet Map with real-time GPS positions for all vehicles, trip assignment, driver tracking, and dispatch center operations.',
+  },
+  {
+    q: 'What is the BlackStock system?',
+    a: 'BlackStock is a special procurement workflow for sourcing outside your standard supplier network — useful for one-off purchases, emergency restocks, or goods acquired through non-standard channels. It has its own PO flow, receipt tracking, and reporting.',
+  },
+  {
+    q: 'Can I control what each user can see and do?',
+    a: 'Yes. Pramukh Digital has role-based access control with page-level permissions. You define roles (admin, manager, sales rep, driver, etc.), assign pages and actions they can perform, then assign roles to users.',
+  },
+  {
+    q: 'Is there a free plan?',
+    a: 'Yes. The Starter plan is free forever with up to 2 users, basic inventory, and invoicing. No credit card needed. Upgrade anytime as your business grows.',
+  },
+  {
+    q: 'Can I import my existing data?',
+    a: 'Yes. Pramukh Digital supports Excel import for products, customers, suppliers, and opening stock. We also provide a REST API for custom integrations and automated data pipelines.',
+  },
+  {
+    q: 'How does the onboarding work?',
+    a: 'Create your account, set up your organisation, choose the modules you need, and pick a plan — all in under 5 minutes. Your workspace is live immediately. No consultant or implementation project needed.',
   },
 ];
 
 const stats = [
-  { value: 500, suffix: '+', label: 'Businesses Served' },
-  { value: 12, suffix: '+', label: 'Countries' },
-  { value: 37, suffix: '+', label: 'Core Modules' },
+  { value: 500, suffix: '+', label: 'Businesses Using It' },
+  { value: 80, suffix: '+', label: 'Core Features' },
+  { value: 8, suffix: '', label: 'Business Modules' },
   { value: 99, suffix: '.9%', label: 'Uptime SLA' },
 ];
 
 const testimonials = [
   {
-    quote: 'Web-ERP transformed how we manage our 4 warehouse locations. Stock transfers that used to take hours now happen in minutes. Our team actually loves using it.',
+    quote: 'Pramukh Digital transformed how we manage our 4 warehouse locations. Stock transfers that used to take hours now happen in minutes — and the fleet tracking is a game changer.',
     name: 'Amara Nwosu',
     role: 'Operations Director, Nwosu Distribution Ltd',
     location: 'Lagos, Nigeria',
     initials: 'AN',
   },
   {
-    quote: 'The invoicing and CRM integration is outstanding. We\'ve cut our billing cycle from 3 days to same-day. Revenue visibility is unreal.',
+    quote: "The POS and quotation builder are outstanding. We've cut our billing cycle from 3 days to same-day. The credit approval workflow has eliminated disputes completely.",
     name: 'Kenji Muthoka',
     role: 'CEO, Muthoka Retail Group',
     location: 'Nairobi, Kenya',
     initials: 'KM',
   },
   {
-    quote: 'Finally, an ERP that doesn\'t need a consultant to set up. The onboarding flow is intuitive and we were live in under an hour.',
+    quote: "Finally, an ERP that doesn't need a consultant. We were live in under an hour. Branch pricing alone saved us hours every week — and our team actually loves using it.",
     name: 'Priya Nakato',
     role: 'Finance Manager, Nakato Manufacturing',
     location: 'Kampala, Uganda',
@@ -108,24 +278,9 @@ const testimonials = [
 ];
 
 const steps = [
-  {
-    num: '01',
-    title: 'Set Up Your Workspace',
-    desc: 'Create your account, add your organization details, choose your industry, and select the modules you need — all in under 5 minutes.',
-    icon: Cpu,
-  },
-  {
-    num: '02',
-    title: 'Import Your Data',
-    desc: 'Bring in your existing inventory, customers, and suppliers via Excel import or connect via our REST API.',
-    icon: Database,
-  },
-  {
-    num: '03',
-    title: 'Run Your Business',
-    desc: 'Your team manages inventory, raises invoices, processes orders, and views real-time analytics from day one — on desktop or web.',
-    icon: TrendingUp,
-  },
+  { num: '01', title: 'Set Up Your Workspace', desc: 'Create your account, add organisation details, choose your industry, and select the modules you need — all in under 5 minutes.', icon: Cpu },
+  { num: '02', title: 'Import Your Data', desc: 'Bring in your existing inventory, customers, suppliers and opening stock via Excel import or connect via our REST API.', icon: Database },
+  { num: '03', title: 'Run Your Business', desc: 'Your team manages stock, raises quotations, runs the POS, tracks fleet, and views live analytics from day one — on desktop or web.', icon: TrendingUp },
 ];
 
 const pricingPlans = [
@@ -136,10 +291,10 @@ const pricingPlans = [
     badge: null as string | null,
     features: [
       { text: 'Up to 2 users', included: true },
-      { text: 'Basic inventory & invoicing', included: true },
+      { text: 'Inventory & basic invoicing', included: true },
       { text: 'Customer management', included: true },
-      { text: 'CRM & supplier management', included: false },
-      { text: 'Advanced analytics', included: false },
+      { text: 'Fleet & branch management', included: false },
+      { text: 'Advanced analytics & reports', included: false },
       { text: 'Multi-location support', included: false },
     ],
     cta: 'Get Started Free',
@@ -147,16 +302,16 @@ const pricingPlans = [
   },
   {
     name: 'Growth',
-    desc: 'Ideal for growing teams and multi-channel operations',
+    desc: 'For growing teams and multi-channel operations',
     price: { monthly: 49, annual: 39 },
     badge: 'Most Popular',
     features: [
       { text: 'Up to 15 users', included: true },
-      { text: 'Full inventory + stock transfers', included: true },
-      { text: 'Unlimited invoicing', included: true },
-      { text: 'CRM & supplier management', included: true },
+      { text: 'Full inventory + warehouse packing', included: true },
+      { text: 'POS, quotations & invoicing', included: true },
+      { text: 'Fleet management & GPS tracking', included: true },
       { text: 'Advanced reports & analytics', included: true },
-      { text: 'Multi-location support', included: false },
+      { text: 'Multi-location & branch pricing', included: false },
     ],
     cta: 'Start Free Trial',
     ctaStyle: 'primary' as const,
@@ -169,9 +324,9 @@ const pricingPlans = [
     features: [
       { text: 'Unlimited users', included: true },
       { text: 'Everything in Growth', included: true },
-      { text: 'Multi-location management', included: true },
+      { text: 'Multi-location & branch pricing', included: true },
+      { text: 'BlackStock procurement system', included: true },
       { text: 'Custom integrations & API access', included: true },
-      { text: 'Role-based access control', included: true },
       { text: 'Dedicated account manager + 24/7 support', included: true },
     ],
     cta: 'Contact Sales',
@@ -181,38 +336,38 @@ const pricingPlans = [
 
 const bentoFeatures = [
   {
-    icon: Zap,
+    icon: Radio,
     color: '#f59e0b',
     title: 'Real-Time Everywhere',
-    desc: 'Every inventory movement, sale, and transaction syncs instantly across all your locations and team members. No refresh needed.',
+    desc: 'Every inventory movement, sale, fleet position, and transaction syncs instantly across all locations. No refresh. No delays. Always live.',
     wide: false,
   },
   {
     icon: Shield,
     color: '#22c55e',
     title: 'Enterprise-Grade Security',
-    desc: 'Role-based access control, end-to-end encryption, comprehensive audit logs, and compliance built into every layer.',
+    desc: 'Role-based access control with page-level granularity, comprehensive audit logs, and end-to-end encryption throughout.',
     wide: false,
   },
   {
-    icon: Globe,
+    icon: MapPin,
     color: '#4f7af8',
-    title: 'Built for African Commerce',
-    desc: 'Supports local currencies (KES, UGX, NGN, GHS and more), local tax configurations, and multi-country operations out of the box. Your ERP should understand your market.',
+    title: 'Built for Your Market',
+    desc: 'Multi-currency support, local tax configurations, branch-level pricing, and region-specific workflows. Designed to understand your market — and help you grow beyond it.',
     wide: true,
   },
   {
-    icon: Database,
+    icon: Activity,
     color: '#a855f7',
-    title: 'Unified Data Architecture',
-    desc: 'One source of truth for all your business data — inventory, customers, suppliers, finances — all interconnected and always consistent.',
+    title: 'Full Audit Trail',
+    desc: 'Every action logged. Activity logs, report generation history, user-level accountability — always know who did what and when.',
     wide: false,
   },
   {
-    icon: BarChart3,
+    icon: FileText,
     color: '#f43f5e',
-    title: 'Powerful Analytics',
-    desc: 'Customizable dashboards, exportable reports in Excel/PDF, and real-time KPIs so you always know where your business stands.',
+    title: 'Quotation to Cash',
+    desc: 'Build quotations, convert to orders, raise invoices, collect payments — the complete sales cycle in one connected flow.',
     wide: false,
   },
 ];
@@ -220,24 +375,109 @@ const bentoFeatures = [
 /* ── Animation Variants ──────────────────────────────────────────── */
 const fadeUp = {
   hidden: { opacity: 0, y: 36 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.55, ease: [0.25, 0.46, 0.45, 0.94] } },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.55, ease: [0.25, 0.46, 0.45, 0.94] as const } },
 };
-
 const stagger = {
   hidden: {},
   visible: { transition: { staggerChildren: 0.1 } },
 };
 
+/* ── FAQ Item ────────────────────────────────────────────────────── */
+function FaqItem({ q, a, defaultOpen = false }: { q: string; a: string; defaultOpen?: boolean }) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div className="lp-faq-item">
+      <button className="lp-faq-question" onClick={() => setOpen(o => !o)} aria-expanded={open}>
+        <span>{q}</span>
+        <motion.div animate={{ rotate: open ? 45 : 0 }} transition={{ duration: 0.2 }}>
+          <Plus size={18} />
+        </motion.div>
+      </button>
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            key="answer"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.28, ease: 'easeInOut' }}
+            style={{ overflow: 'hidden' }}
+          >
+            <p className="lp-faq-answer">{a}</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+/* ── Feature Tab Preview ─────────────────────────────────────────── */
+function FeaturePreviewCard({ tab }: { tab: typeof FEATURE_TABS[0] }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -20 }}
+      transition={{ duration: 0.35 }}
+      className="lp-feat-preview"
+    >
+      <div className="lp-feat-preview-topbar">
+        <div className="lp-preview-dots"><span /><span /><span /></div>
+        <div className="lp-feat-preview-title">{tab.preview.title}</div>
+      </div>
+      <div className="lp-feat-preview-stats">
+        {tab.preview.stats.map(s => (
+          <div key={s.l} className="lp-feat-preview-stat">
+            <div className="lp-feat-preview-stat-label">{s.l}</div>
+            <div className="lp-feat-preview-stat-value">{s.v}</div>
+            <div className="lp-feat-preview-stat-sub">{s.c}</div>
+          </div>
+        ))}
+      </div>
+      <div className="lp-feat-preview-chart">
+        {[45, 68, 52, 80, 62, 88, 72, 95, 78, 100, 82, 96].map((h, i) => (
+          <motion.div
+            key={i}
+            className="lp-feat-preview-bar"
+            style={{ '--bar-color': tab.color, height: `${h}%`, transformOrigin: 'bottom' } as React.CSSProperties}
+            initial={{ scaleY: 0 }}
+            animate={{ scaleY: 1 }}
+            transition={{ delay: i * 0.04, duration: 0.4, ease: 'easeOut' }}
+          />
+        ))}
+      </div>
+    </motion.div>
+  );
+}
+
 /* ── Component ───────────────────────────────────────────────────── */
 export default function LandingPage() {
   const { goNext, isClerkLoaded, isSignedIn } = useOnboarding();
   const navigate = useNavigate();
+  const shellRef = useRef<HTMLDivElement>(null);
   const [billing, setBilling] = useState<'monthly' | 'annual'>('monthly');
   const [activeTestimonial, setActiveTestimonial] = useState(0);
+  const [activeFeatureTab, setActiveFeatureTab] = useState(0);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  const { version, loading: versionLoading } = useLatestRelease();
+  const badgeText = versionLoading
+    ? '● Loading...'
+    : version && version !== 'Latest'
+      ? `${version} — Now Available`
+      : 'v1.1 — Now Available';
 
   useEffect(() => {
-    const id = setInterval(() => setActiveTestimonial((p) => (p + 1) % testimonials.length), 5000);
+    const id = setInterval(() => setActiveTestimonial((p) => (p + 1) % testimonials.length), 5500);
     return () => clearInterval(id);
+  }, []);
+
+  useEffect(() => {
+    const shell = shellRef.current;
+    if (!shell) return;
+    const onScroll = () => setShowScrollTop(shell.scrollTop > 400);
+    shell.addEventListener('scroll', onScroll, { passive: true });
+    return () => shell.removeEventListener('scroll', onScroll);
   }, []);
 
   const handleCTA = () => {
@@ -245,12 +485,23 @@ export default function LandingPage() {
     else goNext();
   };
 
+  const handleContactSales = () => {
+    window.location.href = 'mailto:sales@pramukhdigital.in?subject=Enterprise%20Plan%20Inquiry';
+  };
+
   const scrollTo = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  const scrollToTop = () => {
+    shellRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const activeTab = FEATURE_TABS[activeFeatureTab];
+  const ActiveTabIcon = activeTab.icon;
+
   return (
-    <div className="lp-shell">
+    <div className="lp-shell" ref={shellRef}>
       {/* Background */}
       <div className="lp-bg" aria-hidden="true">
         <div className="lp-blob lp-blob-1" />
@@ -263,26 +514,21 @@ export default function LandingPage() {
 
       {/* ──────────────────── HERO ──────────────────── */}
       <section className="lp-hero" id="hero">
-        <motion.div
-          className="lp-hero-inner"
-          variants={stagger}
-          initial="hidden"
-          animate="visible"
-        >
+        <motion.div className="lp-hero-inner" variants={stagger} initial="hidden" animate="visible">
           <motion.div variants={fadeUp} className="lp-badge">
             <span className="lp-badge-dot" />
-            v3.0 Early Access — Now Live
+            {badgeText}
           </motion.div>
 
           <motion.h1 variants={fadeUp} className="lp-hero-h1">
-            The Operating System<br />
-            for <span className="lp-gradient-text">Modern Commerce</span>
+            One Platform for<br />
+            <span className="lp-gradient-text">Every Part of Your Business</span>
           </motion.h1>
 
           <motion.p variants={fadeUp} className="lp-hero-sub">
-            Unify your inventory, sales, finances, and operations on one
-            lightning-fast platform. Built for African businesses.
-            Designed for limitless scale.
+            Pramukh Digital unifies inventory, sales, fleet, finance, and operations
+            on one lightning-fast platform. Real-time sync, multi-location ready,
+            and built to scale with you.
           </motion.p>
 
           <motion.div variants={fadeUp} className="lp-hero-ctas">
@@ -292,7 +538,7 @@ export default function LandingPage() {
             </button>
             <button className="lp-btn-ghost" onClick={() => scrollTo('modules')}>
               <Play size={14} />
-              See What's Inside
+              Explore Modules
             </button>
           </motion.div>
 
@@ -314,14 +560,12 @@ export default function LandingPage() {
         >
           <div className="lp-preview-card">
             <div className="lp-preview-topbar">
-              <div className="lp-preview-dots">
-                <span /><span /><span />
-              </div>
-              <div className="lp-preview-url">app.web-erp.com/dashboard</div>
+              <div className="lp-preview-dots"><span /><span /><span /></div>
+              <div className="lp-preview-url">app.pramukhdigital.com/dashboard</div>
             </div>
             <div className="lp-preview-body">
               <div className="lp-preview-sidebar">
-                {['Dashboard', 'Inventory', 'Sales', 'Finance', 'CRM', 'HR'].map((item, i) => (
+                {['Dashboard', 'Inventory', 'Sales & POS', 'Fleet', 'Finance', 'Reports'].map((item, i) => (
                   <div key={item} className={`lp-preview-nav-item${i === 0 ? ' active' : ''}`}>
                     <span className="lp-preview-nav-dot" />
                     {item}
@@ -334,8 +578,8 @@ export default function LandingPage() {
                   {[
                     { l: 'Revenue', v: 'KSh 2.4M', c: '+18%' },
                     { l: 'Orders', v: '1,284', c: '+12%' },
-                    { l: 'Stock Items', v: '4,891', c: 'Live' },
-                    { l: 'Active Users', v: '14', c: '' },
+                    { l: 'Fleet Active', v: '7/9', c: 'Live' },
+                    { l: 'Stock Items', v: '4,891', c: '' },
                   ].map((s) => (
                     <div key={s.l} className="lp-preview-stat">
                       <div className="lp-preview-stat-label">{s.l}</div>
@@ -368,9 +612,7 @@ export default function LandingPage() {
           <div className="lp-stats-grid">
             {stats.map((s) => (
               <div key={s.label} className="lp-stat-item">
-                <div className="lp-stat-value">
-                  <Counter value={s.value} suffix={s.suffix} />
-                </div>
+                <div className="lp-stat-value"><Counter value={s.value} suffix={s.suffix} /></div>
                 <div className="lp-stat-label">{s.label}</div>
               </div>
             ))}
@@ -381,30 +623,16 @@ export default function LandingPage() {
       {/* ──────────────────── MODULES ───────────────── */}
       <section className="lp-section" id="modules">
         <div className="lp-container">
-          <motion.div
-            className="lp-section-header"
-            variants={stagger}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: '-80px' }}
-          >
+          <motion.div className="lp-section-header" variants={stagger} initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-80px' }}>
             <motion.p variants={fadeUp} className="lp-section-eyebrow">Everything You Need</motion.p>
-            <motion.h2 variants={fadeUp} className="lp-section-h2">
-              Six Modules. One Unified Platform.
-            </motion.h2>
+            <motion.h2 variants={fadeUp} className="lp-section-h2">Eight Modules. One Unified Platform.</motion.h2>
             <motion.p variants={fadeUp} className="lp-section-desc">
               Select only the modules your business needs today. Add more as you grow.
               Every module is fully integrated — no data silos, no duplicate entry.
             </motion.p>
           </motion.div>
 
-          <motion.div
-            className="lp-modules-grid"
-            variants={stagger}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: '-60px' }}
-          >
+          <motion.div className="lp-modules-grid" variants={stagger} initial="hidden" whileInView="visible" viewport={{ once: true, margin: '-60px' }}>
             {modules.map((mod) => {
               const Icon = mod.icon;
               return (
@@ -429,22 +657,96 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ──────────────────── WHY WEB-ERP ───────────── */}
+      {/* ──────────────────── FEATURE SHOWCASE ──────── */}
       <section className="lp-section lp-section-alt" id="features">
         <div className="lp-container">
-          <motion.div
-            className="lp-section-header"
-            variants={stagger}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-          >
-            <motion.p variants={fadeUp} className="lp-section-eyebrow">Why Web-ERP</motion.p>
-            <motion.h2 variants={fadeUp} className="lp-section-h2">
-              Built Different. Built Better.
-            </motion.h2>
+          <motion.div className="lp-section-header" variants={stagger} initial="hidden" whileInView="visible" viewport={{ once: true }}>
+            <motion.p variants={fadeUp} className="lp-section-eyebrow">Deep Dive</motion.p>
+            <motion.h2 variants={fadeUp} className="lp-section-h2">Explore Every Module in Detail</motion.h2>
+            <motion.p variants={fadeUp} className="lp-section-desc">
+              Click any module below to see exactly what it does, what it tracks, and how it fits into your operation.
+            </motion.p>
           </motion.div>
 
+          {/* Tab Buttons */}
+          <div className="lp-feature-tabs">
+            {FEATURE_TABS.map((tab, i) => {
+              const TabIcon = tab.icon;
+              const isActive = activeFeatureTab === i;
+              return (
+                <button
+                  key={tab.id}
+                  className={`lp-feature-tab-btn${isActive ? ' active' : ''}`}
+                  onClick={() => setActiveFeatureTab(i)}
+                  style={isActive ? { '--tab-color': tab.color } as React.CSSProperties : undefined}
+                >
+                  <TabIcon size={16} />
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Tab Content */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeFeatureTab}
+              className="lp-feature-tab-content"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.3 }}
+            >
+              {/* Left: description + highlights */}
+              <div className="lp-feat-left">
+                <div className="lp-feat-icon-wrap" style={{ background: `${activeTab.color}18`, color: activeTab.color }}>
+                  <ActiveTabIcon size={28} />
+                </div>
+                <h3 className="lp-feat-headline">{activeTab.headline}</h3>
+                <p className="lp-feat-desc">{activeTab.desc}</p>
+                <ul className="lp-feat-highlights">
+                  {activeTab.highlights.map((h, i) => {
+                    const HIcon = h.icon;
+                    return (
+                      <motion.li
+                        key={i}
+                        className="lp-feat-highlight-item"
+                        initial={{ opacity: 0, x: -12 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: i * 0.06 }}
+                      >
+                        <div className="lp-feat-highlight-dot" style={{ background: `${activeTab.color}22`, color: activeTab.color }}>
+                          <HIcon size={14} />
+                        </div>
+                        <span>{h.text}</span>
+                      </motion.li>
+                    );
+                  })}
+                </ul>
+                <button className="lp-btn-primary lp-feat-cta" onClick={handleCTA} style={{ marginTop: 28 }}>
+                  Start with {activeTab.label}
+                  <ArrowRight size={16} />
+                </button>
+              </div>
+
+              {/* Right: preview card */}
+              <div className="lp-feat-right">
+                <AnimatePresence mode="wait">
+                  <FeaturePreviewCard key={activeFeatureTab} tab={activeTab} />
+                </AnimatePresence>
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      </section>
+
+      {/* ──────────────────── WHY PRAMUKH DIGITAL ─── */}
+      <section className="lp-section" id="why">
+        <div className="lp-container">
+          <motion.div className="lp-section-header" variants={stagger} initial="hidden" whileInView="visible" viewport={{ once: true }}>
+            <motion.p variants={fadeUp} className="lp-section-eyebrow">Why Pramukh Digital</motion.p>
+            <motion.h2 variants={fadeUp} className="lp-section-h2">Built Different. Built Better.</motion.h2>
+          </motion.div>
           <div className="lp-features-bento">
             {bentoFeatures.map((feat, i) => {
               const FeatIcon = feat.icon;
@@ -471,42 +773,23 @@ export default function LandingPage() {
       </section>
 
       {/* ──────────────────── HOW IT WORKS ──────────── */}
-      <section className="lp-section" id="how-it-works">
+      <section className="lp-section lp-section-alt" id="how-it-works">
         <div className="lp-container">
-          <motion.div
-            className="lp-section-header"
-            variants={stagger}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-          >
+          <motion.div className="lp-section-header" variants={stagger} initial="hidden" whileInView="visible" viewport={{ once: true }}>
             <motion.p variants={fadeUp} className="lp-section-eyebrow">Get Started</motion.p>
-            <motion.h2 variants={fadeUp} className="lp-section-h2">
-              Up and Running in Minutes
-            </motion.h2>
+            <motion.h2 variants={fadeUp} className="lp-section-h2">Up and Running in Minutes</motion.h2>
             <motion.p variants={fadeUp} className="lp-section-desc">
               No consultants. No lengthy implementations. No complexity.
-              Just a clean, guided setup that gets your team operational fast.
+              A clean, guided setup that gets your team operational fast.
             </motion.p>
           </motion.div>
-
           <div className="lp-steps">
             {steps.map((step, i) => {
               const StepIcon = step.icon;
               return (
-                <motion.div
-                  key={step.num}
-                  className="lp-step"
-                  variants={fadeUp}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.15 }}
-                >
+                <motion.div key={step.num} className="lp-step" variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }} transition={{ delay: i * 0.15 }}>
                   <div className="lp-step-num">{step.num}</div>
-                  <div className="lp-step-icon">
-                    <StepIcon size={24} />
-                  </div>
+                  <div className="lp-step-icon"><StepIcon size={24} /></div>
                   <h3 className="lp-step-title">{step.title}</h3>
                   <p className="lp-step-desc">{step.desc}</p>
                 </motion.div>
@@ -517,35 +800,16 @@ export default function LandingPage() {
       </section>
 
       {/* ──────────────────── PRICING ───────────────── */}
-      <section className="lp-section lp-section-alt" id="pricing">
+      <section className="lp-section" id="pricing">
         <div className="lp-container">
-          <motion.div
-            className="lp-section-header"
-            variants={stagger}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-          >
+          <motion.div className="lp-section-header" variants={stagger} initial="hidden" whileInView="visible" viewport={{ once: true }}>
             <motion.p variants={fadeUp} className="lp-section-eyebrow">Pricing</motion.p>
-            <motion.h2 variants={fadeUp} className="lp-section-h2">
-              Simple, Transparent Pricing
-            </motion.h2>
-            <motion.p variants={fadeUp} className="lp-section-desc">
-              Start free and scale as you grow. No hidden fees. Cancel anytime.
-            </motion.p>
+            <motion.h2 variants={fadeUp} className="lp-section-h2">Simple, Transparent Pricing</motion.h2>
+            <motion.p variants={fadeUp} className="lp-section-desc">Start free and scale as you grow. No hidden fees. Cancel anytime.</motion.p>
             <motion.div variants={fadeUp} className="lp-billing-toggle">
-              <button
-                className={`lp-toggle-btn${billing === 'monthly' ? ' active' : ''}`}
-                onClick={() => setBilling('monthly')}
-              >
-                Monthly
-              </button>
-              <button
-                className={`lp-toggle-btn${billing === 'annual' ? ' active' : ''}`}
-                onClick={() => setBilling('annual')}
-              >
-                Annual
-                <span className="lp-save-badge">Save 20%</span>
+              <button className={`lp-toggle-btn${billing === 'monthly' ? ' active' : ''}`} onClick={() => setBilling('monthly')}>Monthly</button>
+              <button className={`lp-toggle-btn${billing === 'annual' ? ' active' : ''}`} onClick={() => setBilling('annual')}>
+                Annual <span className="lp-save-badge">Save 20%</span>
               </button>
             </motion.div>
           </motion.div>
@@ -572,9 +836,7 @@ export default function LandingPage() {
                   ) : (
                     <>
                       <span className="lp-price-currency">$</span>
-                      <span className="lp-price-amount">
-                        {billing === 'monthly' ? plan.price.monthly : plan.price.annual}
-                      </span>
+                      <span className="lp-price-amount">{billing === 'monthly' ? plan.price.monthly : plan.price.annual}</span>
                       <span className="lp-price-period">/mo</span>
                     </>
                   )}
@@ -592,7 +854,7 @@ export default function LandingPage() {
                 </ul>
                 <button
                   className={`lp-pricing-cta lp-pricing-cta-${plan.ctaStyle}`}
-                  onClick={handleCTA}
+                  onClick={plan.ctaStyle === 'solid' ? handleContactSales : handleCTA}
                 >
                   {plan.cta}
                   <ChevronRight size={16} />
@@ -604,21 +866,12 @@ export default function LandingPage() {
       </section>
 
       {/* ──────────────────── TESTIMONIALS ──────────── */}
-      <section className="lp-section" id="testimonials">
+      <section className="lp-section lp-section-alt" id="testimonials">
         <div className="lp-container">
-          <motion.div
-            className="lp-section-header"
-            variants={stagger}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-          >
+          <motion.div className="lp-section-header" variants={stagger} initial="hidden" whileInView="visible" viewport={{ once: true }}>
             <motion.p variants={fadeUp} className="lp-section-eyebrow">Customer Stories</motion.p>
-            <motion.h2 variants={fadeUp} className="lp-section-h2">
-              Trusted Across the Continent
-            </motion.h2>
+            <motion.h2 variants={fadeUp} className="lp-section-h2">Trusted Across the Region</motion.h2>
           </motion.div>
-
           <div className="lp-testimonials">
             {testimonials.map((t, i) => (
               <motion.div
@@ -629,9 +882,7 @@ export default function LandingPage() {
                 transition={{ type: 'spring', stiffness: 300, damping: 20 }}
               >
                 <div className="lp-testimonial-stars">
-                  {Array.from({ length: 5 }).map((_, j) => (
-                    <Star key={j} size={14} fill="currentColor" />
-                  ))}
+                  {Array.from({ length: 5 }).map((_, j) => <Star key={j} size={14} fill="currentColor" />)}
                 </div>
                 <p className="lp-testimonial-quote">"{t.quote}"</p>
                 <div className="lp-testimonial-author">
@@ -639,55 +890,56 @@ export default function LandingPage() {
                   <div>
                     <div className="lp-testimonial-name">{t.name}</div>
                     <div className="lp-testimonial-role">{t.role}</div>
-                    <div className="lp-testimonial-location">
-                      <Globe size={11} />
-                      {t.location}
-                    </div>
+                    <div className="lp-testimonial-location"><Globe size={11} />{t.location}</div>
                   </div>
                 </div>
               </motion.div>
             ))}
           </div>
-
           <div className="lp-testimonial-dots">
             {testimonials.map((_, i) => (
-              <button
-                key={i}
-                className={`lp-t-dot${i === activeTestimonial ? ' active' : ''}`}
-                onClick={() => setActiveTestimonial(i)}
-                aria-label={`Testimonial ${i + 1}`}
-              />
+              <button key={i} className={`lp-t-dot${i === activeTestimonial ? ' active' : ''}`} onClick={() => setActiveTestimonial(i)} aria-label={`Testimonial ${i + 1}`} />
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* ──────────────────── FAQ ───────────────────── */}
+      <section className="lp-section" id="faq">
+        <div className="lp-container">
+          <motion.div className="lp-section-header" variants={stagger} initial="hidden" whileInView="visible" viewport={{ once: true }}>
+            <motion.p variants={fadeUp} className="lp-section-eyebrow">FAQ</motion.p>
+            <motion.h2 variants={fadeUp} className="lp-section-h2">Common Questions</motion.h2>
+            <motion.p variants={fadeUp} className="lp-section-desc">
+              Everything you need to know before getting started.{' '}
+              <button className="lp-faq-contact-link" onClick={handleContactSales}>Can't find your answer? Contact us directly.</button>
+            </motion.p>
+          </motion.div>
+          <motion.div className="lp-faq-grid" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}>
+            {FAQ_ITEMS.map((item, i) => (
+              <motion.div key={i} variants={fadeUp}>
+                <FaqItem q={item.q} a={item.a} defaultOpen={i === 0} />
+              </motion.div>
+            ))}
+          </motion.div>
         </div>
       </section>
 
       {/* ──────────────────── FINAL CTA ─────────────── */}
       <section className="lp-cta-section">
         <div className="lp-container">
-          <motion.div
-            className="lp-cta-card"
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-          >
+          <motion.div className="lp-cta-card" initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
             <div className="lp-cta-badge">Start Today</div>
-            <h2 className="lp-cta-h2">
-              Ready to Modernize<br />Your Operations?
-            </h2>
+            <h2 className="lp-cta-h2">Ready to Modernize<br />Your Operations?</h2>
             <p className="lp-cta-desc">
-              Join hundreds of businesses across Africa running smarter with Web-ERP.
+              Join hundreds of businesses running smarter with Pramukh Digital.
               Start free — no credit card required.
             </p>
             <div className="lp-cta-btns">
               <button className="lp-btn-primary" onClick={handleCTA}>
-                Initialize Your Workspace
-                <ArrowRight size={18} />
+                Initialize Your Workspace <ArrowRight size={18} />
               </button>
-              <button className="lp-btn-ghost" onClick={() => scrollTo('pricing')}>
-                View Pricing
-              </button>
+              <button className="lp-btn-ghost" onClick={() => scrollTo('pricing')}>View Pricing</button>
             </div>
             <div className="lp-cta-trust">
               <span><Check size={13} /> Free plan available</span>
@@ -699,6 +951,25 @@ export default function LandingPage() {
       </section>
 
       <MarketingFooter onScrollTo={scrollTo} />
+
+      {/* Scroll to top */}
+      <AnimatePresence>
+        {showScrollTop && (
+          <motion.button
+            className="scroll-top-btn"
+            onClick={scrollToTop}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ duration: 0.2 }}
+            aria-label="Scroll to top"
+          >
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <path d="M9 14V4M9 4l-4 4M9 4l4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </motion.button>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
