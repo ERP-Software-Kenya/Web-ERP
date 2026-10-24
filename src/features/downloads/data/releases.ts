@@ -27,24 +27,44 @@ export const downloadableAssetPattern = /\.(exe|msi|dmg|appimage|deb|rpm|zip|tar
 
 export const erpClientReleases: ErpClientRelease[] = [
   {
-    version: '0.1.9',
-    tag: 'v0.1.9',
+    version: '1.1.0',
+    tag: 'v1.1.0',
     channel: 'Latest',
-    date: 'Current production client',
-    releaseUrl: `${githubReleaseBase}/tag/0.1.9`,
+    date: 'Current Production Release',
+    releaseUrl: `${githubReleaseBase}/tag/v1.1.0`,
     notes: [
-      'Electron desktop ERP client for branch sales, purchase, inventory, reports, and analytics workflows.',
-      'Published through the ERP-Client publish-release script to the public GitHub Releases channel.',
-      'Recommended installer for production users on Windows x64.',
+      'Official production desktop ERP client for branch sales, counter POS, stock transfer, purchase, and analytics.',
+      'Validated for Windows 10 & 11 (64-bit). Direct hardware receipt printer & barcode scanner support.',
+      'Recommended build for production retail stores, wholesalers, and multi-branch commercial enterprises.',
     ],
     assets: [
       {
-        label: 'Download Windows Installer',
+        label: 'Download Pramukh Digital ERP (Windows x64)',
+        platform: 'Windows x64',
+        format: 'NSIS .exe',
+        size: 'GitHub hosted',
+        url: `${githubReleaseBase}/download/v1.1.0/Pramukh-Digital-Setup-1.1.0.exe`,
+        primary: true,
+      },
+    ],
+  },
+  {
+    version: '0.1.9',
+    tag: 'v0.1.9',
+    channel: 'Previous',
+    date: 'Previous Release',
+    releaseUrl: `${githubReleaseBase}/tag/0.1.9`,
+    notes: [
+      'Previous desktop ERP client build kept available as a rollback option for active teams.',
+    ],
+    assets: [
+      {
+        label: 'Download Windows Installer v0.1.9',
         platform: 'Windows x64',
         format: 'NSIS .exe',
         size: 'GitHub hosted',
         url: `${githubReleaseBase}/download/0.1.9/Pramukh-Digital-Setup-0.1.9.exe`,
-        primary: true,
+        primary: false,
       },
     ],
   },
@@ -52,65 +72,22 @@ export const erpClientReleases: ErpClientRelease[] = [
     version: '0.1.8',
     tag: '0.1.8',
     channel: 'Previous',
-    date: 'Previous production client',
+    date: 'Previous Release',
     releaseUrl: `${githubReleaseBase}/tag/0.1.8`,
     notes: [
-      'Previous Windows desktop build kept available as a rollback option.',
-      'Use this only when operations need to return to ERP client v0.1.8.',
+      'Rollback build kept available for operations needing to return to ERP client v0.1.8.',
     ],
     assets: [
       {
-        label: 'Download Windows Installer',
+        label: 'Download Windows Installer v0.1.8',
         platform: 'Windows x64',
         format: 'NSIS .exe',
         size: 'GitHub hosted',
         url: `${githubReleaseBase}/download/0.1.8/Pramukh-Digital-Setup-0.1.8.exe`,
-        primary: true,
+        primary: false,
       },
     ],
   },
-  {
-    version: '0.1.7',
-    tag: '0.1.7',
-    channel: 'Previous',
-    date: 'Previous production client',
-    releaseUrl: `${githubReleaseBase}/tag/0.1.7`,
-    notes: [
-      'Previous Windows desktop build kept available as a rollback option.',
-      'Use this only when operations need to return to the earlier ERP client version.',
-    ],
-    assets: [
-      {
-        label: 'Download Windows Installer',
-        platform: 'Windows x64',
-        format: 'NSIS .exe',
-        size: 'GitHub hosted',
-        url: `${githubReleaseBase}/download/0.1.7/Core-ERP-Client-Setup-0.1.7.exe`,
-        primary: true,
-      },
-    ],
-  },
-  ...['0.1.6', '0.1.5', '0.1.4', '0.1.3', '0.1.2', '0.1.1'].map((version) => ({
-    version,
-    tag: version,
-    channel: 'Previous' as const,
-    date: 'Previous production client',
-    releaseUrl: `${githubReleaseBase}/tag/${version}`,
-    notes: [
-      `Previous Windows desktop build v${version} kept available for rollback.`,
-      'Use this only when operations need to return to an earlier ERP client version.',
-    ],
-    assets: [
-      {
-        label: 'Download Windows Installer',
-        platform: 'Windows x64',
-        format: 'NSIS .exe',
-        size: 'GitHub hosted',
-        url: `${githubReleaseBase}/download/${version}/Core-ERP-Client-Setup-${version}.exe`,
-        primary: true,
-      },
-    ],
-  })),
 ];
 
 export const latestErpClientRelease = erpClientReleases[0];
@@ -124,17 +101,17 @@ export interface DownloadFeature {
 export const downloadFeatures: DownloadFeature[] = [
   {
     icon: MonitorDown,
-    title: 'Desktop speed',
-    body: 'Run billing, inventory, purchase, and reports in a focused desktop workspace built for daily operations.',
+    title: 'Counter & Desktop Speed',
+    body: 'Fast thermal receipt printing, barcode lookup, and offline cache built for high-traffic store counters.',
   },
   {
     icon: ShieldCheck,
-    title: 'Secure updates',
-    body: 'Release builds are published through the ERP Client GitHub Releases pipeline used by the desktop updater.',
+    title: 'Verified Security Pipeline',
+    body: 'Release packages are compiled and distributed through GitHub Releases with SHA256 integrity verification.',
   },
   {
     icon: Sparkles,
-    title: 'Version control',
-    body: 'Every listed build is easy to review, download, and roll back from a central downloads page.',
+    title: 'Automatic Cloud Sync',
+    body: 'Branch transactions sync securely with your cloud workspace so management has 360-degree visibility.',
   },
 ];

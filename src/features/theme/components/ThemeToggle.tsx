@@ -28,6 +28,7 @@ export default function ThemeToggle() {
           alignItems: 'center'
         }}
         title="Light Mode"
+        aria-label="Light mode"
       >
         <Sun size={14} />
       </button>
@@ -45,6 +46,7 @@ export default function ThemeToggle() {
           alignItems: 'center'
         }}
         title="System Theme"
+        aria-label="System theme"
       >
         <Monitor size={14} />
       </button>
@@ -62,6 +64,7 @@ export default function ThemeToggle() {
           alignItems: 'center'
         }}
         title="Dark Mode"
+        aria-label="Dark mode"
       >
         <Moon size={14} />
       </button>

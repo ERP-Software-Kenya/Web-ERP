@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Download, Menu, X } from 'lucide-react';
 import { useOnboarding } from '../../onboarding/context/OnboardingContext';
 import { latestErpClientRelease } from '../../downloads/data/releases';
+import ThemeToggle from '../../theme/components/ThemeToggle';
 
 interface Props {
   onScrollTo?: (id: string) => void;
@@ -23,16 +24,22 @@ export default function MarketingHeader({ onScrollTo }: Props) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
-    const shell = document.querySelector('.lp-shell');
-    const target = shell ?? window;
-
     const handleScroll = () => {
+      const shell = document.querySelector('.lp-shell') || document.querySelector('.site-shell');
       const y = shell ? shell.scrollTop : window.scrollY;
       setScrolled(y > 20);
     };
 
-    target.addEventListener('scroll', handleScroll, { passive: true });
-    return () => target.removeEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    const shell = document.querySelector('.lp-shell') || document.querySelector('.site-shell');
+    if (shell) {
+      shell.addEventListener('scroll', handleScroll, { passive: true });
+    }
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (shell) shell.removeEventListener('scroll', handleScroll);
+    };
   }, []);
 
   const handleNav = (id: string) => {
@@ -45,16 +52,16 @@ export default function MarketingHeader({ onScrollTo }: Props) {
   };
 
   const handleStart = () => {
-    goNext();
+    navigate('/onboarding/step-1');
     setMobileOpen(false);
   };
 
   return (
-    <header className={`lp-header${scrolled ? ' scrolled' : ''}`}>
+    <header className={`lp-header${scrolled ? ' scrolled' : ''}`} style={{ borderBottom: '1px solid var(--color-border)' }}>
       <div className="lp-header-inner">
         <Link className="lp-header-logo" to="/">
           <div className="lp-logo-icon">P</div>
-          <span>Pramukh Digital</span>
+          <span>Pramukh Digital ERP</span>
         </Link>
 
         <nav className="lp-header-nav" aria-label="Main navigation">
@@ -81,13 +88,17 @@ export default function MarketingHeader({ onScrollTo }: Props) {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.35 }}
         >
+          <ThemeToggle />
+
           <a className="lp-btn-download-sm" href={latestErpClientRelease.assets[0].url} download>
-            <Download size={16} />
+            <Download size={15} />
             <span>Download v{latestErpClientRelease.version}</span>
           </a>
+
           <button className="lp-btn-cta-sm" onClick={handleStart}>
-            Start trial
+            Start setup
           </button>
+
           <button
             className="lp-hamburger"
             onClick={() => setMobileOpen((open) => !open)}
@@ -123,10 +134,10 @@ export default function MarketingHeader({ onScrollTo }: Props) {
             <div className="lp-mobile-actions">
               <a className="lp-btn-download-sm" href={latestErpClientRelease.assets[0].url} download>
                 <Download size={16} />
-                Download client
+                Download v{latestErpClientRelease.version}
               </a>
               <button className="lp-btn-cta-sm" onClick={handleStart}>
-                Start trial
+                Start setup
               </button>
             </div>
           </motion.div>

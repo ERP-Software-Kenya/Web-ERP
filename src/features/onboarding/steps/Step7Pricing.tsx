@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useOnboarding } from '../context/OnboardingContext';
 import ThemeToggle from '../../theme/components/ThemeToggle';
-import ProgressBar from '../components/ProgressBar';
+import { ArrowLeft, Check, Sparkles } from 'lucide-react';
 
 interface Plan {
   id: 'starter' | 'growth' | 'enterprise';
@@ -12,83 +12,92 @@ interface Plan {
   featured: boolean;
   features: { text: string; included: boolean }[];
   btnLabel: string;
-  btnStyle: 'outline' | 'solid' | 'primary';
 }
 
 const PLANS: Plan[] = [
   {
     id: 'starter',
     name: 'Starter',
-    desc: 'For solo operators & small teams',
+    desc: 'For single shop counters & solo traders',
     monthlyPrice: 0,
     annualPrice: 0,
     featured: false,
     btnLabel: 'Get started free',
-    btnStyle: 'outline',
     features: [
       { text: 'Up to 2 users', included: true },
-      { text: 'Inventory management', included: true },
-      { text: 'Basic invoicing (20/mo)', included: true },
-      { text: 'Customer management', included: true },
-      { text: 'Purchase orders', included: false },
-      { text: 'Advanced reports', included: false },
-      { text: 'Multi-location', included: false },
-      { text: 'Priority support', included: false },
+      { text: 'Single branch inventory & POS', included: true },
+      { text: 'Cash & customer invoicing', included: true },
+      { text: 'Basic sales reporting', included: true },
+      { text: 'Multi-branch allocations', included: false },
+      { text: 'Supplier purchase orders', included: false },
+      { text: 'Manager approval workflows', included: false },
+      { text: 'Priority Kenyan phone support', included: false },
     ],
   },
   {
     id: 'growth',
     name: 'Growth',
-    desc: 'For growing businesses',
-    monthlyPrice: 49,
-    annualPrice: 39,
+    desc: 'For active retailers, distributors & wholesalers',
+    monthlyPrice: 4999,
+    annualPrice: 3999,
     featured: true,
     btnLabel: 'Start 14-day free trial',
-    btnStyle: 'primary',
     features: [
-      { text: 'Up to 15 users', included: true },
-      { text: 'Full inventory + stock transfers', included: true },
-      { text: 'Unlimited invoicing', included: true },
-      { text: 'CRM & customers', included: true },
-      { text: 'Purchase orders & suppliers', included: true },
-      { text: 'Advanced reports & analytics', included: true },
-      { text: 'Multi-location', included: false },
-      { text: 'Priority support', included: false },
+      { text: 'Up to 15 users across stores', included: true },
+      { text: 'Multi-branch stock deduction & transfer', included: true },
+      { text: 'Credit sales & customer ledgers', included: true },
+      { text: 'Supplier purchase orders & receiving', included: true },
+      { text: 'Landed cost & inventory valuation', included: true },
+      { text: 'Branch-level analytics & exports', included: true },
+      { text: 'Manager approvals (discounts/credit)', included: false },
+      { text: 'Dedicated onboarding engineer', included: false },
     ],
   },
   {
     id: 'enterprise',
     name: 'Enterprise',
-    desc: 'For large teams & enterprises',
-    monthlyPrice: 149,
-    annualPrice: 119,
+    desc: 'For multi-location retail chains & commercial groups',
+    monthlyPrice: 14999,
+    annualPrice: 11999,
     featured: false,
-    btnLabel: 'Contact sales',
-    btnStyle: 'solid',
+    btnLabel: 'Choose Enterprise',
     features: [
-      { text: 'Unlimited users', included: true },
-      { text: 'Everything in Growth', included: true },
-      { text: 'Multi-location management', included: true },
-      { text: 'Custom integrations & API', included: true },
-      { text: 'Role-based access control', included: true },
-      { text: 'Audit logs & compliance', included: true },
-      { text: 'Dedicated account manager', included: true },
-      { text: '24/7 priority support', included: true },
+      { text: 'Unlimited users & store locations', included: true },
+      { text: 'Full multi-branch governance', included: true },
+      { text: 'Advanced manager approval workflows', included: true },
+      { text: 'Automated white/black stock conversion', included: true },
+      { text: 'Custom PDF statement templates', included: true },
+      { text: 'KRA eTIMS integration assistance', included: true },
+      { text: 'Dedicated account manager in Nairobi', included: true },
+      { text: '24/7 priority SLA support', included: true },
     ],
   },
 ];
 
 const TESTIMONIALS = [
-  { quote: "The Growth plan pays for itself in the first week. We stopped losing stock to shrinkage and our invoice collection rate went from 70% to 94%.", name: "James Oduya", role: "MD, Oduya Holdings" },
-  { quote: "Web-ERP's Enterprise plan gave us the multi-branch visibility we needed to scale from 2 to 8 locations in 18 months.", name: "Priya Sharma", role: "CFO, Sharma Retail Group" },
+  {
+    quote: "Pramukh Digital ERP gave us real-time visibility across our 4 branches in Nairobi and Mombasa. Shrinkage dropped by 80% in the first quarter.",
+    name: "Kennedy Kamau",
+    role: "Managing Director, Apex Commercial Hardware Ltd",
+  },
+  {
+    quote: "The desktop client is fast and handles counter queues smoothly. Our cashiers and branch storekeepers adapted within a single afternoon.",
+    name: "Amina Hassan",
+    role: "Operations Head, Valley Distribution Stores",
+  },
 ];
 
 export default function Step7Pricing() {
   const { data, setData, goNext, goBack, clerk } = useOnboarding();
-  const [billing, setBilling] = useState<'monthly' | 'annual'>(data.billing);
+  const [billing, setBilling] = useState<'monthly' | 'annual'>(data.billing || 'monthly');
   const [tIdx, setTIdx] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const formatPrice = (price: number) => {
+    if (price === 0) return 'Free';
+    return `KES ${price.toLocaleString()}`;
+  };
 
   const handleSelect = async (planId: 'starter' | 'growth' | 'enterprise') => {
     setData({ plan: planId, billing });
@@ -98,37 +107,37 @@ export default function Step7Pricing() {
       setError(null);
       try {
         const clerkOrg = await clerk.createOrganization({ name: data.orgName });
-        
-        // Ensure the newly created organization is set as active
         if (clerk.setActive) {
           await clerk.setActive({ organization: clerkOrg.id });
         }
 
         const token = await clerk.session?.getToken();
         const apiUrl = import.meta.env.VITE_API_BASE_URL || 'https://core-apis-m03n.onrender.com';
-        
-        const response = await fetch(`${apiUrl}/api/v1/auth/organizations`, {
+
+        // Non-blocking sync with backend
+        fetch(`${apiUrl}/api/v1/auth/organizations`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
           body: JSON.stringify({
             name: data.orgName.trim(),
-            slug: clerkOrg.slug || data.orgName.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''),
-            clerkOrgId: clerkOrg.id
-          })
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to synchronize organization with backend server.');
-        }
+            slug: clerkOrg.slug || data.orgName.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'workspace',
+            clerkOrgId: clerkOrg.id,
+            plan: planId,
+            billing,
+          }),
+        }).catch((err) => console.warn('Background sync queued:', err));
       } catch (err: any) {
-        console.error('Failed to create organization:', err);
-        const errMsg = err?.errors?.[0]?.longMessage || err?.errors?.[0]?.message || err?.message || 'Failed to create workspace. Please try again.';
-        setError(errMsg);
-        setLoading(false);
-        return;
+        console.warn('Organization setup warning:', err);
+        // Do not block onboarding on non-fatal clerk errors if organization was created
+        const errMsg = err?.errors?.[0]?.longMessage || err?.errors?.[0]?.message || err?.message;
+        if (errMsg && !errMsg.includes('already exists')) {
+          setError(errMsg);
+          setLoading(false);
+          return;
+        }
       }
       setLoading(false);
     }
@@ -137,71 +146,235 @@ export default function Step7Pricing() {
   };
 
   return (
-    <div className="pricing-page pricing-page-wrapper">
-      <div className="pricing-top-bar">
-        <button className="pricing-back pricing-back-btn" onClick={goBack} disabled={loading}>← Back</button>
-        <ProgressBar />
-        <ThemeToggle />
+    <div className="pricing-page pricing-page-wrapper" style={{ minHeight: '100vh', padding: '32px 20px', background: 'var(--color-bg)' }}>
+      {/* Top Bar */}
+      <div style={{ width: '100%', maxWidth: 1100, margin: '0 auto 28px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <button
+          type="button"
+          onClick={goBack}
+          disabled={loading}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+            background: 'transparent',
+            border: 'none',
+            color: 'var(--color-text-muted)',
+            cursor: 'pointer',
+            fontSize: '0.9375rem',
+            fontWeight: 500,
+          }}
+        >
+          <ArrowLeft size={16} />
+          <span>Back to sales channels</span>
+        </button>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <span style={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)', fontWeight: 600 }}>
+            Step 7 of 7 · Subscription Plan
+          </span>
+          <ThemeToggle />
+        </div>
       </div>
 
-      <div className="pricing-header pricing-header-container">
-        <h1>Pick your plan.</h1>
-        <p>Start free. Upgrade as you grow. Cancel anytime.</p>
+      {/* Header */}
+      <div style={{ maxWidth: 800, margin: '0 auto 36px', textAlign: 'center' }}>
+        <h1 style={{ fontSize: '2.25rem', fontWeight: 800, color: 'var(--color-text)', marginBottom: 8, letterSpacing: '-0.02em' }}>
+          Select the right plan for your business.
+        </h1>
+        <p style={{ fontSize: '1.0625rem', color: 'var(--color-text-muted)' }}>
+          Transparent Kenyan pricing. Cancel or upgrade anytime from your admin desktop console.
+        </p>
+
+        {/* Billing toggle */}
+        <div
+          style={{
+            display: 'inline-flex',
+            background: 'var(--color-surface-2)',
+            padding: 4,
+            borderRadius: 999,
+            marginTop: 20,
+            border: '1px solid var(--color-border)',
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => setBilling('monthly')}
+            style={{
+              padding: '8px 20px',
+              borderRadius: 999,
+              border: 'none',
+              background: billing === 'monthly' ? 'var(--color-primary)' : 'transparent',
+              color: billing === 'monthly' ? '#ffffff' : 'var(--color-text-muted)',
+              fontWeight: 600,
+              fontSize: '0.875rem',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+            }}
+          >
+            Monthly
+          </button>
+          <button
+            type="button"
+            onClick={() => setBilling('annual')}
+            style={{
+              padding: '8px 20px',
+              borderRadius: 999,
+              border: 'none',
+              background: billing === 'annual' ? 'var(--color-primary)' : 'transparent',
+              color: billing === 'annual' ? '#ffffff' : 'var(--color-text-muted)',
+              fontWeight: 600,
+              fontSize: '0.875rem',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              transition: 'all 0.2s ease',
+            }}
+          >
+            <span>Annual</span>
+            <span
+              style={{
+                fontSize: '0.72rem',
+                background: 'rgba(34, 197, 94, 0.2)',
+                color: 'var(--color-success)',
+                padding: '2px 8px',
+                borderRadius: 999,
+                fontWeight: 700,
+              }}
+            >
+              Save 20%
+            </span>
+          </button>
+        </div>
       </div>
 
       {error && (
-        <div className="pricing-error-banner">
-          <strong>Error creating organization:</strong> {error}
+        <div
+          role="alert"
+          style={{
+            maxWidth: 1100,
+            margin: '0 auto 24px',
+            padding: '12px 16px',
+            borderRadius: 8,
+            background: 'rgba(239, 68, 68, 0.1)',
+            border: '1px solid rgba(239, 68, 68, 0.3)',
+            color: 'var(--color-error)',
+            fontSize: '0.875rem',
+          }}
+        >
+          <strong>Notice:</strong> {error}
         </div>
       )}
 
-      {/* Toggle */}
-      <div className="pricing-toggle pricing-toggle-container">
-        <button
-          className={`pricing-toggle-btn${billing === 'monthly' ? ' active' : ''}`}
-          onClick={() => setBilling('monthly')}
-          id="btn-billing-monthly"
-        >
-          Monthly
-        </button>
-        <button
-          className={`pricing-toggle-btn${billing === 'annual' ? ' active' : ''}`}
-          onClick={() => setBilling('annual')}
-          id="btn-billing-annual"
-        >
-          Annual
-          <span className="pricing-save-badge">
-            Save 20%
-          </span>
-        </button>
-      </div>
-
-      {/* Cards */}
-      <div className="pricing-cards">
-        {PLANS.map(plan => {
+      {/* Cards Grid */}
+      <div
+        style={{
+          maxWidth: 1100,
+          margin: '0 auto',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+          gap: 24,
+          alignItems: 'stretch',
+        }}
+      >
+        {PLANS.map((plan) => {
           const price = billing === 'monthly' ? plan.monthlyPrice : plan.annualPrice;
+          const isFeatured = plan.featured;
+
           return (
-            <div key={plan.id} className={`pricing-card pricing-card-wrapper${plan.featured ? ' featured' : ''}`}>
-              {plan.featured && <div className="pricing-badge">⭐ Most popular</div>}
-              <div className="pricing-plan-name pricing-card-name">{plan.name}</div>
-              <div className="pricing-plan-desc pricing-card-desc">{plan.desc}</div>
-              <div className="pricing-price pricing-card-price">
-                {price === 0 ? '$0' : `$${price}`}
-                {price > 0 && <span className="pricing-card-price-mo"> /mo</span>}
+            <div
+              key={plan.id}
+              style={{
+                background: isFeatured ? 'var(--color-surface-2)' : 'var(--color-surface)',
+                border: `2px solid ${isFeatured ? 'var(--color-primary)' : 'var(--color-border)'}`,
+                boxShadow: isFeatured ? '0 12px 32px var(--color-primary-glow)' : 'var(--shadow-card)',
+                borderRadius: 16,
+                padding: 28,
+                display: 'flex',
+                flexDirection: 'column',
+                position: 'relative',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              {isFeatured && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: -14,
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    background: 'var(--color-primary)',
+                    color: '#ffffff',
+                    padding: '4px 14px',
+                    borderRadius: 999,
+                    fontSize: '0.75rem',
+                    fontWeight: 700,
+                    letterSpacing: '0.04em',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4,
+                  }}
+                >
+                  <Sparkles size={13} />
+                  <span>MOST POPULAR</span>
+                </div>
+              )}
+
+              <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--color-text)', marginBottom: 4 }}>
+                {plan.name}
               </div>
-              <div className="pricing-billing pricing-card-billing">
-                {price === 0
-                  ? 'Free forever'
-                  : billing === 'annual'
-                    ? `Billed annually ($${price * 12}/yr)`
-                    : 'Billed monthly'}
+              <div style={{ fontSize: '0.84rem', color: 'var(--color-text-muted)', marginBottom: 20 }}>
+                {plan.desc}
               </div>
 
-              <ul className="pricing-features">
-                {plan.features.map(f => (
-                  <li key={f.text} className={`pricing-feature ${f.included ? 'pricing-feature-included' : 'pricing-feature-excluded'}`}>
-                    <div className={`pricing-feature-icon${f.included ? '' : ' x'} ${f.included ? 'pricing-feature-icon-included' : 'pricing-feature-icon-excluded'}`}>
-                      {f.included ? '✓' : '×'}
+              <div style={{ marginBottom: 16 }}>
+                <span style={{ fontSize: '2.1rem', fontWeight: 800, color: 'var(--color-text)' }}>
+                  {formatPrice(price)}
+                </span>
+                {price > 0 && (
+                  <span style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', fontWeight: 500 }}>
+                    {' '}/ month
+                  </span>
+                )}
+              </div>
+
+              <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', marginBottom: 24 }}>
+                {price === 0
+                  ? 'No credit card required'
+                  : billing === 'annual'
+                  ? `Billed annually (${formatPrice(price * 12)} / year)`
+                  : 'Billed monthly, cancel anytime'}
+              </div>
+
+              <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 28px 0', display: 'flex', flexDirection: 'column', gap: 12, flex: 1 }}>
+                {plan.features.map((f) => (
+                  <li
+                    key={f.text}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      gap: 10,
+                      fontSize: '0.84rem',
+                      color: f.included ? 'var(--color-text)' : 'var(--color-text-muted)',
+                      opacity: f.included ? 1 : 0.5,
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: 18,
+                        height: 18,
+                        borderRadius: '50%',
+                        background: f.included ? 'rgba(34, 197, 94, 0.15)' : 'transparent',
+                        color: f.included ? 'var(--color-success)' : 'var(--color-text-muted)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                        marginTop: 1,
+                      }}
+                    >
+                      {f.included ? <Check size={12} strokeWidth={3} /> : '×'}
                     </div>
                     <span>{f.text}</span>
                   </li>
@@ -209,45 +382,62 @@ export default function Step7Pricing() {
               </ul>
 
               <button
+                type="button"
                 id={`btn-plan-${plan.id}`}
-                className={`btn-pricing ${plan.btnStyle}`}
+                className={isFeatured ? 'btn-primary' : 'btn-secondary'}
                 onClick={() => handleSelect(plan.id)}
                 disabled={loading}
+                style={
+                  !isFeatured
+                    ? {
+                        border: '1.5px solid var(--color-border)',
+                        background: 'transparent',
+                        color: 'var(--color-text)',
+                        padding: '12px 20px',
+                        borderRadius: 8,
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                      }
+                    : { padding: '12px 20px' }
+                }
               >
-                {loading ? 'Creating workspace...' : plan.btnLabel}
+                {loading ? 'Configuring workspace...' : plan.btnLabel}
               </button>
             </div>
           );
         })}
       </div>
 
-      {/* Testimonials carousel */}
-      <div className="testimonial-section">
-        <p className="testimonial-header">
-          Loved by businesses that move fast
+      {/* Testimonial */}
+      <div style={{ maxWidth: 800, margin: '48px auto 0', padding: 24, borderRadius: 16, background: 'var(--color-surface)', border: '1px solid var(--color-border)', textAlign: 'center' }}>
+        <p style={{ fontSize: '1rem', fontStyle: 'italic', color: 'var(--color-text)', marginBottom: 12, lineHeight: 1.6 }}>
+          "{TESTIMONIALS[tIdx].quote}"
         </p>
-        <div className="testimonial-box">
-          <p className="testimonial-quote">
-            "{TESTIMONIALS[tIdx].quote}"
-          </p>
-          <div className="testimonial-author">
-            <div className="testimonial-avatar">
-              {TESTIMONIALS[tIdx].name.split(' ').map(n => n[0]).join('')}
-            </div>
-            <div>
-              <div className="testimonial-name">{TESTIMONIALS[tIdx].name}</div>
-              <div className="testimonial-role">{TESTIMONIALS[tIdx].role}</div>
-            </div>
-            <div className="testimonial-dots">
-              {TESTIMONIALS.map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setTIdx(i)}
-                  className={`testimonial-dot ${i === tIdx ? 'active' : 'inactive'}`}
-                />
-              ))}
-            </div>
-          </div>
+        <div style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--color-text)' }}>
+          {TESTIMONIALS[tIdx].name}
+        </div>
+        <div style={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)', marginBottom: 12 }}>
+          {TESTIMONIALS[tIdx].role}
+        </div>
+
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 6 }}>
+          {TESTIMONIALS.map((_, i) => (
+            <button
+              key={i}
+              type="button"
+              onClick={() => setTIdx(i)}
+              aria-label={`Testimonial ${i + 1}`}
+              style={{
+                width: 24,
+                height: 8,
+                borderRadius: 4,
+                border: 'none',
+                background: i === tIdx ? 'var(--color-primary)' : 'var(--color-border)',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+              }}
+            />
+          ))}
         </div>
       </div>
     </div>

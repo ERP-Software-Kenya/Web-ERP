@@ -2,14 +2,15 @@ import React, { useState } from 'react';
 import { useOnboarding } from '../context/OnboardingContext';
 import StepLayout from '../components/StepLayout';
 import type { BusinessType } from '../../../types';
+import { Store, Boxes, Factory, Briefcase, Globe, Sparkles, Check } from 'lucide-react';
 
-const OPTIONS: { type: BusinessType; desc: string; icon: string }[] = [
-  { type: 'Retail', desc: 'Selling products directly to consumers', icon: '🛍️' },
-  { type: 'Wholesale', desc: 'Selling in bulk to other businesses', icon: '📦' },
-  { type: 'Manufacturing', desc: 'Producing goods from raw materials', icon: '🏭' },
-  { type: 'Services', desc: 'Providing professional services', icon: '🤝' },
-  { type: 'E-commerce', desc: 'Online sales and fulfillment', icon: '🌐' },
-  { type: 'Other', desc: 'Different business model', icon: '✨' },
+const OPTIONS: { type: BusinessType; desc: string; icon: React.ElementType }[] = [
+  { type: 'Retail', desc: 'Counter sales, barcode POS & direct consumers', icon: Store },
+  { type: 'Wholesale', desc: 'Bulk supply, credit sales & distributor pricing', icon: Boxes },
+  { type: 'Manufacturing', desc: 'Raw material procurement, production & conversion', icon: Factory },
+  { type: 'Services', desc: 'Invoicing, service jobs & client billing', icon: Briefcase },
+  { type: 'E-commerce', desc: 'Digital store orders, delivery & dispatch', icon: Globe },
+  { type: 'Other', desc: 'Multi-model enterprise trading operations', icon: Sparkles },
 ];
 
 export default function Step3BusinessType() {
@@ -18,7 +19,7 @@ export default function Step3BusinessType() {
 
   const handleContinue = () => {
     if (!data.businessType) {
-      setError('Please select a business type');
+      setError('Please select your business type to proceed');
       return;
     }
     goNext();
@@ -31,39 +32,106 @@ export default function Step3BusinessType() {
 
   return (
     <StepLayout
-      title="What's your core business?"
-      subtitle="We'll tailor the ERP modules based on your operational focus."
+      title="What is your business model?"
+      subtitle="Pramukh Digital ERP will configure transaction workflows and ledgers accordingly."
       onContinue={handleContinue}
       onBack={goBack}
     >
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '8px' }}>
-        {OPTIONS.map(opt => {
+      <div
+        role="radiogroup"
+        aria-label="Core business model"
+        style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '4px' }}
+      >
+        {OPTIONS.map((opt) => {
           const isSelected = data.businessType === opt.type;
+          const IconComponent = opt.icon;
+
           return (
-            <div
+            <button
+              type="button"
               key={opt.type}
+              role="radio"
+              aria-checked={isSelected}
               onClick={() => handleSelect(opt.type)}
               style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'flex-start',
+                textAlign: 'left',
                 padding: '16px',
-                border: `2px solid ${isSelected ? 'var(--color-primary)' : 'var(--color-border)'}`,
+                border: `1.5px solid ${isSelected ? 'var(--color-primary)' : 'var(--color-border)'}`,
                 borderRadius: '12px',
                 background: isSelected ? 'var(--color-primary-glow)' : 'var(--color-surface)',
                 cursor: 'pointer',
-                transition: 'all 0.2s',
+                position: 'relative',
+                transition: 'all 0.2s ease',
               }}
             >
-              <div style={{ fontSize: '24px', marginBottom: '12px' }}>{opt.icon}</div>
-              <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--color-text)', marginBottom: '4px' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  width: '100%',
+                  marginBottom: 10,
+                }}
+              >
+                <div
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 8,
+                    background: isSelected ? 'var(--color-primary)' : 'var(--color-surface-2)',
+                    color: isSelected ? '#ffffff' : 'var(--color-primary)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  <IconComponent size={20} />
+                </div>
+                {isSelected && (
+                  <div
+                    style={{
+                      width: 22,
+                      height: 22,
+                      borderRadius: '50%',
+                      background: 'var(--color-primary)',
+                      color: '#ffffff',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Check size={14} strokeWidth={3} />
+                  </div>
+                )}
+              </div>
+
+              <span
+                style={{
+                  fontSize: '0.9375rem',
+                  fontWeight: 600,
+                  color: isSelected ? 'var(--color-primary)' : 'var(--color-text)',
+                  marginBottom: '4px',
+                }}
+              >
                 {opt.type}
-              </h3>
-              <p style={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)', lineHeight: 1.4 }}>
+              </span>
+              <span style={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)', lineHeight: 1.35 }}>
                 {opt.desc}
-              </p>
-            </div>
+              </span>
+            </button>
           );
         })}
       </div>
-      {error && <div className="form-error" style={{ marginTop: '16px' }}>{error}</div>}
+
+      {error && (
+        <div className="form-error" role="alert" style={{ marginTop: '16px' }}>
+          {error}
+        </div>
+      )}
     </StepLayout>
   );
 }

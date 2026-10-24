@@ -10,16 +10,17 @@ const defaultData: OnboardingData = {
   password: '',
   orgName: '',
   industry: '',
-  country: '',
+  country: 'Kenya',
   businessType: '',
   teamSize: '',
-  modules: [],
+  modules: ['inventory', 'sales'],
   salesMethod: '',
-  plan: '',
+  plan: 'growth',
   billing: 'monthly',
 };
 
-const STORAGE_KEY = 'onboarding_data';
+const STORAGE_KEY = 'pramukh_onboarding_draft';
+const LEGACY_STORAGE_KEY = 'onboarding_data';
 
 interface OnboardingContextType {
   data: OnboardingData;
@@ -50,7 +51,7 @@ export const pathToStep = (pathname: string) => {
   if (pathname === '/onboarding/done') return 8;
   const match = pathname.match(/\/onboarding\/step-(\d)/);
   if (match) return parseInt(match[1], 10);
-  return 0; // Default or 404
+  return 0;
 };
 
 export function OnboardingProvider({ children }: { children: ReactNode }) {
@@ -61,15 +62,29 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
 
   const [data, setDataState] = useState<OnboardingData>(() => {
     try {
+      // Clean up legacy insecure storage if present
+      localStorage.removeItem(LEGACY_STORAGE_KEY);
+      
       const stored = localStorage.getItem(STORAGE_KEY);
-      return stored ? JSON.parse(stored) : defaultData;
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        // Guarantee password is never loaded from persistent storage
+        return { ...defaultData, ...parsed, password: '' };
+      }
+      return defaultData;
     } catch {
       return defaultData;
     }
   });
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    try {
+      // Exclude password completely from persistent storage
+      const { password, ...safeDraft } = data;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(safeDraft));
+    } catch (e) {
+      console.warn('Failed to save draft to localStorage', e);
+    }
   }, [data]);
 
   const [clerk, setClerk] = useState<Clerk | null>(null);
@@ -125,7 +140,20 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <OnboardingContext.Provider value={{ data, setData, clerk, setClerk, isClerkLoaded, isSignedIn, step: currentStep, totalSteps, direction, goNext, goBack, goTo }}>
+    <OnboardingContext.Provider value={{
+      data,
+      setData,
+      clerk,
+      setClerk,
+      isClerkLoaded,
+      isSignedIn,
+      step: currentStep,
+      totalSteps,
+      direction,
+      goNext,
+      goBack,
+      goTo
+    }}>
       {children}
     </OnboardingContext.Provider>
   );

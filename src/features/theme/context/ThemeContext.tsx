@@ -29,9 +29,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
       activeTheme = systemTheme;
       root.classList.add(systemTheme);
+      root.setAttribute('data-theme', systemTheme);
     } else {
       activeTheme = theme;
       root.classList.add(theme);
+      root.setAttribute('data-theme', theme);
     }
     
     setResolvedTheme(activeTheme);

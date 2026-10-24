@@ -1,16 +1,15 @@
 import React, { useState } from 'react';
 import { useOnboarding } from '../context/OnboardingContext';
 import StepLayout from '../components/StepLayout';
-import { motion } from 'framer-motion';
-import { Package, ShoppingCart, Truck, Landmark, Users, Briefcase } from 'lucide-react';
+import { ShoppingCart, Truck, Boxes, BarChart3, FileSpreadsheet, ClipboardCheck, Check } from 'lucide-react';
 
 const MODULES = [
-  { id: 'inventory', name: 'Inventory Management', desc: 'Track stock, variants, and locations', icon: Package },
-  { id: 'sales', name: 'Sales & Invoicing', desc: 'Manage orders, quotes, and billing', icon: ShoppingCart },
-  { id: 'purchasing', name: 'Purchasing & POs', desc: 'Supplier management and restocks', icon: Truck },
-  { id: 'accounting', name: 'Financial Accounting', desc: 'Ledgers, P&L, and tax compliance', icon: Landmark },
-  { id: 'crm', name: 'CRM', desc: 'Customer tracking and interactions', icon: Users },
-  { id: 'hr', name: 'HR & Payroll', desc: 'Employee management and salaries', icon: Briefcase },
+  { id: 'sales', name: 'Sales & POS Billing', desc: 'Cash/credit billing, customer ledgers & receipts', icon: ShoppingCart },
+  { id: 'purchasing', name: 'Purchase & Suppliers', desc: 'Supplier orders, receiving & stock allocation', icon: Truck },
+  { id: 'inventory', name: 'Inventory & Stock Control', desc: 'Multi-store quantities, batch tracking & valuation', icon: Boxes },
+  { id: 'analytics', name: 'Branch Analytics', desc: 'Daily revenue, margin & store metrics', icon: BarChart3 },
+  { id: 'reports', name: 'Financial Reports', desc: 'Audit trails, PDF statements & tax exports', icon: FileSpreadsheet },
+  { id: 'approvals', name: 'Manager Approvals', desc: 'Role-based authorization for discounts & credit', icon: ClipboardCheck },
 ];
 
 export default function Step5Modules() {
@@ -19,7 +18,7 @@ export default function Step5Modules() {
 
   const handleContinue = () => {
     if (data.modules.length === 0) {
-      setError('Please select at least one module to get started');
+      setError('Please select at least one module to configure your workspace');
       return;
     }
     goNext();
@@ -28,7 +27,7 @@ export default function Step5Modules() {
   const toggleModule = (id: string) => {
     let nextModules = [...data.modules];
     if (nextModules.includes(id)) {
-      nextModules = nextModules.filter(m => m !== id);
+      nextModules = nextModules.filter((m) => m !== id);
     } else {
       nextModules.push(id);
     }
@@ -39,38 +38,115 @@ export default function Step5Modules() {
   return (
     <StepLayout
       title="Select initial modules"
-      subtitle="You can always add or remove these later."
+      subtitle="Choose the operational workflows your branches will begin with."
       onContinue={handleContinue}
       onBack={goBack}
     >
-      <div className="custom-module-grid">
-        {MODULES.map(m => {
+      <div
+        role="group"
+        aria-label="ERP modules selection"
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: '10px',
+          marginTop: '4px',
+        }}
+      >
+        {MODULES.map((m) => {
           const isSelected = data.modules.includes(m.id);
           const Icon = m.icon;
+
           return (
-            <motion.div
+            <button
+              type="button"
               key={m.id}
+              role="checkbox"
+              aria-checked={isSelected}
               onClick={() => toggleModule(m.id)}
-              whileHover={{ scale: 1.02, y: -2 }}
-              whileTap={{ scale: 0.98 }}
-              className={`custom-module-card ${isSelected ? 'selected' : ''}`}
+              onKeyDown={(e) => {
+                if (e.key === ' ' || e.key === 'Enter') {
+                  e.preventDefault();
+                  toggleModule(m.id);
+                }
+              }}
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'flex-start',
+                textAlign: 'left',
+                padding: '12px 14px',
+                borderRadius: '10px',
+                border: `1.5px solid ${isSelected ? 'var(--color-primary)' : 'var(--color-border)'}`,
+                background: isSelected ? 'var(--color-primary-glow)' : 'var(--color-surface)',
+                color: 'var(--color-text)',
+                cursor: 'pointer',
+                position: 'relative',
+                transition: 'all 0.18s ease',
+              }}
             >
-              <div className="custom-module-icon-wrap">
-                <Icon size={18} color={isSelected ? '#fff' : 'var(--color-text-muted)'} />
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  width: '100%',
+                  marginBottom: 6,
+                }}
+              >
+                <div
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 6,
+                    background: isSelected ? 'var(--color-primary)' : 'var(--color-surface-2)',
+                    color: isSelected ? '#ffffff' : 'var(--color-primary)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Icon size={17} />
+                </div>
+
+                <div
+                  style={{
+                    width: 18,
+                    height: 18,
+                    borderRadius: 4,
+                    border: `1.5px solid ${isSelected ? 'var(--color-primary)' : 'var(--color-border)'}`,
+                    background: isSelected ? 'var(--color-primary)' : 'transparent',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  {isSelected && <Check size={12} color="#ffffff" strokeWidth={3} />}
+                </div>
               </div>
-              <div style={{ textAlign: 'left', marginTop: '8px' }}>
-                <h3 className="custom-module-title">
-                  {m.name}
-                </h3>
-                <p className="custom-module-desc">
-                  {m.desc}
-                </p>
+
+              <div
+                style={{
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  color: isSelected ? 'var(--color-primary)' : 'var(--color-text)',
+                  marginBottom: 2,
+                }}
+              >
+                {m.name}
               </div>
-            </motion.div>
+              <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', lineHeight: 1.3 }}>
+                {m.desc}
+              </div>
+            </button>
           );
         })}
       </div>
-      {error && <div className="form-error custom-form-error">{error}</div>}
+
+      {error && (
+        <div className="form-error" role="alert" style={{ marginTop: '14px' }}>
+          {error}
+        </div>
+      )}
     </StepLayout>
   );
 }

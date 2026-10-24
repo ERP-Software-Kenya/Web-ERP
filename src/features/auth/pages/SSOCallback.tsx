@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { AlertCircle } from 'lucide-react';
 import { useOnboarding } from '../../onboarding/context/OnboardingContext';
 import { Clerk } from '@clerk/clerk-js';
 
@@ -66,14 +67,16 @@ export default function SSOCallback() {
     return (
       <div className="sso-callback-container">
         <div className="sso-callback-box">
-          <div className="sso-callback-icon-error">⚠️</div>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
+            <AlertCircle size={44} color="var(--color-error, #ef4444)" />
+          </div>
           <h2 className="sso-callback-title">Authentication Error</h2>
           <p className="sso-callback-msg">{error}</p>
           <button 
             className="btn-primary" 
-            onClick={() => navigate('/')}
+            onClick={() => navigate('/onboarding/step-1')}
           >
-            Return to Login
+            Try again
           </button>
         </div>
       </div>
