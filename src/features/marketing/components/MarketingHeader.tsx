@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Download, Menu, X } from 'lucide-react';
 import { useOnboarding } from '../../onboarding/context/OnboardingContext';
-import { latestErpClientRelease } from '../../downloads/data/releases';
 
 interface Props {
   onScrollTo?: (id: string) => void;
@@ -81,10 +80,10 @@ export default function MarketingHeader({ onScrollTo }: Props) {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.35 }}
         >
-          <a className="lp-btn-download-sm" href={latestErpClientRelease.assets[0].url} download>
+          <Link className="lp-btn-download-sm" to="/downloads">
             <Download size={16} />
-            <span>Download v{latestErpClientRelease.version}</span>
-          </a>
+            <span>Download apps</span>
+          </Link>
           <button className="lp-btn-cta-sm" onClick={handleStart}>
             Start trial
           </button>
@@ -121,10 +120,10 @@ export default function MarketingHeader({ onScrollTo }: Props) {
               Downloads
             </Link>
             <div className="lp-mobile-actions">
-              <a className="lp-btn-download-sm" href={latestErpClientRelease.assets[0].url} download>
+              <Link className="lp-btn-download-sm" to="/downloads" onClick={() => setMobileOpen(false)}>
                 <Download size={16} />
-                Download client
-              </a>
+                Download apps
+              </Link>
               <button className="lp-btn-cta-sm" onClick={handleStart}>
                 Start trial
               </button>

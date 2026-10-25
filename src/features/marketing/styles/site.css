@@ -499,6 +499,142 @@
   margin-bottom: 30px;
 }
 
+.mobile-download-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.65fr) minmax(280px, 0.75fr);
+  gap: 20px;
+  margin-bottom: 56px;
+}
+
+.mobile-download-card,
+.mobile-install-card {
+  border: 1px solid rgba(16, 24, 40, 0.1);
+  border-radius: 20px;
+  background: #ffffff;
+  box-shadow: 0 18px 50px rgba(16, 24, 40, 0.09);
+}
+
+.mobile-download-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 210px;
+  gap: 28px;
+  overflow: hidden;
+  padding: 30px;
+  background: linear-gradient(145deg, #ffffff 56%, #eef4ff 100%);
+}
+
+.mobile-platform-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #175cd3;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.mobile-release-title {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 14px 0 18px;
+}
+
+.mobile-release-title h2,
+.mobile-install-card h2,
+.desktop-download-heading h2 {
+  color: #101828;
+}
+
+.mobile-release-title h2 { font-size: clamp(1.55rem, 3vw, 2.1rem); }
+.mobile-release-title p,
+.desktop-download-heading p { color: #667085; margin-top: 6px; line-height: 1.55; }
+
+.mobile-release-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.mobile-release-meta span {
+  padding: 7px 10px;
+  border-radius: 8px;
+  background: #f2f4f7;
+  color: #475467;
+  font-size: 0.82rem;
+}
+
+.mobile-release-meta strong { color: #101828; }
+
+.mobile-benefits {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 11px 18px;
+  margin: 0 0 24px;
+}
+
+.mobile-benefits li {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  color: #344054;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.mobile-benefits svg { flex: 0 0 auto; color: #1570ef; margin-top: 1px; }
+.mobile-download-button { min-width: 230px; justify-content: center; }
+.mobile-download-button:disabled { cursor: not-allowed; opacity: 0.56; }
+
+.mobile-config-note {
+  margin-top: 11px;
+  color: #b54708;
+  font-size: 0.82rem;
+}
+
+.mobile-config-note code,
+.mobile-checksum code { overflow-wrap: anywhere; }
+
+.mobile-checksum { margin-top: 14px; color: #475467; font-size: 0.82rem; }
+.mobile-checksum summary { cursor: pointer; font-weight: 700; }
+.mobile-checksum code { display: block; margin-top: 7px; padding: 9px; border-radius: 7px; background: #f2f4f7; }
+
+.mobile-device-preview {
+  width: 190px;
+  min-height: 355px;
+  align-self: center;
+  justify-self: center;
+  padding: 10px;
+  border: 7px solid #101828;
+  border-radius: 34px;
+  background: #101828;
+  box-shadow: 0 24px 48px rgba(16, 24, 40, 0.25);
+  transform: rotate(2deg);
+}
+
+.mobile-device-speaker { width: 56px; height: 5px; margin: 0 auto 9px; border-radius: 999px; background: #475467; }
+.mobile-device-screen { height: calc(100% - 14px); display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 22px; background: linear-gradient(155deg, #175cd3, #6941c6); color: #fff; text-align: center; }
+.mobile-device-mark { display: grid; place-items: center; width: 60px; height: 60px; margin-bottom: 15px; border-radius: 18px; background: rgba(255,255,255,0.96); color: #175cd3; font-size: 1.8rem; font-weight: 900; }
+.mobile-device-screen strong { font-size: 1.05rem; }
+.mobile-device-screen span { margin-top: 5px; color: rgba(255,255,255,0.78); font-size: 0.76rem; }
+.mobile-device-route { display: flex; align-items: center; gap: 19px; margin-top: 30px; }
+.mobile-device-route i { position: relative; width: 10px; height: 10px; border: 2px solid #fff; border-radius: 50%; }
+.mobile-device-route i:not(:last-child)::after { content: ''; position: absolute; top: 2px; left: 10px; width: 21px; border-top: 2px dashed rgba(255,255,255,0.65); }
+
+.mobile-install-card { padding: 28px; }
+.mobile-install-card h2 { margin: 12px 0 22px; font-size: 1.35rem; }
+.mobile-install-card ol { display: grid; gap: 20px; }
+.mobile-install-card li { display: grid; grid-template-columns: 34px 1fr; gap: 12px; list-style: none; }
+.mobile-install-card li > span { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: #eff4ff; color: #175cd3; font-weight: 800; }
+.mobile-install-card strong { color: #101828; }
+.mobile-install-card li p { margin-top: 4px; color: #667085; font-size: 0.86rem; line-height: 1.5; }
+.mobile-install-note { margin-top: 24px; padding: 12px; border-radius: 9px; background: #fffaeb; color: #93370d; font-size: 0.82rem; line-height: 1.5; }
+.desktop-download-heading { margin-bottom: 18px; }
+.desktop-download-heading h2 { margin-top: 10px; font-size: 1.5rem; }
+
 .downloads-feature-grid {
   margin-top: 18px;
 }
@@ -653,6 +789,8 @@
     grid-template-columns: 1fr;
   }
 
+  .mobile-download-layout { grid-template-columns: 1fr; }
+
   .release-actions {
     justify-content: flex-start;
   }
@@ -694,6 +832,13 @@
   .release-head {
     display: block;
   }
+
+  .mobile-download-card { grid-template-columns: 1fr; padding: 22px; }
+  .mobile-device-preview { display: none; }
+  .mobile-benefits { grid-template-columns: 1fr; }
+  .mobile-release-title { display: block; }
+  .mobile-release-title .release-badge { display: inline-block; margin-top: 12px; }
+  .mobile-download-button { width: 100%; min-width: 0; }
 
   .release-status {
     flex-direction: column;

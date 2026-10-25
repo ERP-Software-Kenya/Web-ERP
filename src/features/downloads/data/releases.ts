@@ -115,6 +115,18 @@ export const erpClientReleases: ErpClientRelease[] = [
 
 export const latestErpClientRelease = erpClientReleases[0];
 
+const configuredAndroidUrl = import.meta.env.VITE_ANDROID_APP_DOWNLOAD_URL?.trim() ?? '';
+
+export const androidAppRelease = {
+  version: import.meta.env.VITE_ANDROID_APP_VERSION?.trim() || '1.0.0',
+  channel: import.meta.env.VITE_MOBILE_RELEASE_CHANNEL?.trim() || 'stable',
+  size: import.meta.env.VITE_ANDROID_APP_SIZE?.trim() || 'Size available after build',
+  updatedAt: import.meta.env.VITE_ANDROID_APP_UPDATED_AT?.trim() || 'Latest approved build',
+  sha256: import.meta.env.VITE_ANDROID_APP_SHA256?.trim() || '',
+  downloadUrl: configuredAndroidUrl,
+  isConfigured: /^https:\/\//i.test(configuredAndroidUrl),
+} as const;
+
 export interface DownloadFeature {
   icon: LucideIcon;
   title: string;
