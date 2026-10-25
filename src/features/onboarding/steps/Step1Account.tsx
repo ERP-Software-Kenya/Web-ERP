@@ -4,39 +4,38 @@ import StepLayout from '../components/StepLayout';
 import Input from '../../../components/ui/Input';
 
 export default function Step1Account() {
-  const { data, setData, goNext, goBack, clerk, isClerkLoaded } = useOnboarding();
+  const { data, setData, goNext, goBack, goTo, clerk, isClerkLoaded, refreshAuth, authError } = useOnboarding();
   const [loading, setLoading] = useState(false);
+  const [mode, setMode] = useState<'signup' | 'signin'>('signup');
+  const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [pendingVerification, setPendingVerification] = useState(false);
+  const [verificationKind, setVerificationKind] = useState<'signup' | 'signin'>('signup');
   const [otpCode, setOtpCode] = useState('');
 
   const validate = () => {
     const nextErrors: Record<string, string> = {};
 
-    if (!data.firstName.trim()) nextErrors.firstName = 'First name is required';
-    if (!data.lastName.trim()) nextErrors.lastName = 'Last name is required';
+    if (mode === 'signup' && !data.firstName.trim()) nextErrors.firstName = 'First name is required';
+    if (mode === 'signup' && !data.lastName.trim()) nextErrors.lastName = 'Last name is required';
     if (!data.email.trim() || !data.email.includes('@')) nextErrors.email = 'Valid email is required';
-    if (data.password.length < 8) nextErrors.password = 'Password must be at least 8 characters';
+    if (password.length < 8) nextErrors.password = 'Password must be at least 8 characters';
 
     return nextErrors;
   };
 
   const handleAuthSuccess = async (sessionId: string | null) => {
     if (!clerk) {
-      goNext();
-      return;
+      throw new Error('Secure account setup is unavailable. Please reload and try again.');
     }
 
     if (sessionId) {
       await clerk.setActive({ session: sessionId });
     }
 
-    if (clerk.session) {
-      const token = await clerk.session.getToken();
-      if (token) localStorage.setItem('auth_token', token);
-    }
-
-    goNext();
+    const me = await refreshAuth(clerk);
+    if (me?.isOnboarded) goTo(8);
+    else goNext();
   };
 
   const handleCreateAccount = async () => {
@@ -51,12 +50,28 @@ export default function Step1Account() {
 
     try {
       if (!clerk?.client) {
-        goNext();
-        return;
+        throw new Error('Clerk is not available. Please reload and try again.');
       }
 
       if (clerk.session) {
         await clerk.signOut();
+      }
+
+      if (mode === 'signin') {
+        const signIn = await clerk.client.signIn.create({ identifier: data.email.trim(), password });
+        if (signIn.status === 'complete') {
+          await handleAuthSuccess(signIn.createdSessionId);
+          return;
+        }
+        if (signIn.status === 'needs_second_factor' || signIn.status === 'needs_client_trust') {
+          const emailFactor = signIn.supportedSecondFactors?.find((factor) => factor.strategy === 'email_code') as { strategy: 'email_code'; emailAddressId: string } | undefined;
+          if (!emailFactor?.emailAddressId) throw new Error('No supported email verification method is available.');
+          await signIn.prepareSecondFactor({ strategy: 'email_code', emailAddressId: emailFactor.emailAddressId });
+          setVerificationKind('signin');
+          setPendingVerification(true);
+          return;
+        }
+        throw new Error(`Additional authentication is required (${signIn.status}).`);
       }
 
       const baseUsername = data.email.trim().split('@')[0].replace(/[^a-zA-Z0-9_-]/g, '');
@@ -66,13 +81,14 @@ export default function Step1Account() {
         lastName: data.lastName.trim(),
         emailAddress: data.email.trim(),
         username: `${baseUsername}${randomSuffix}`,
-        password: data.password,
+        password,
       });
 
       if (signUp.status === 'complete') {
         await handleAuthSuccess(signUp.createdSessionId);
       } else if (signUp.unverifiedFields.includes('email_address')) {
         await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
+        setVerificationKind('signup');
         setPendingVerification(true);
       } else {
         setErrors({ submit: `Account creation incomplete. Status: ${signUp.status}` });
@@ -97,18 +113,17 @@ export default function Step1Account() {
 
     try {
       if (!clerk?.client) {
-        goNext();
-        return;
+        throw new Error('Clerk is not available. Please reload and try again.');
       }
 
-      const completeSignUp = await clerk.client.signUp.attemptEmailAddressVerification({
-        code: otpCode,
-      });
+      const verification = verificationKind === 'signin'
+        ? await clerk.client.signIn.attemptSecondFactor({ strategy: 'email_code', code: otpCode.trim() })
+        : await clerk.client.signUp.attemptEmailAddressVerification({ code: otpCode.trim() });
 
-      if (completeSignUp.status === 'complete') {
-        await handleAuthSuccess(completeSignUp.createdSessionId);
+      if (verification.status === 'complete') {
+        await handleAuthSuccess(verification.createdSessionId);
       } else {
-        setErrors({ submit: `Verification failed. Status: ${completeSignUp.status}` });
+        setErrors({ submit: `Verification failed. Status: ${verification.status}` });
       }
     } catch (err: unknown) {
       const errorObj = err as any;
@@ -143,16 +158,16 @@ export default function Step1Account() {
 
   return (
     <StepLayout
-      title={pendingVerification ? 'Verify your email' : 'Create your account'}
-      subtitle={pendingVerification ? 'Enter the code sent to your email address.' : 'Start with the admin account that will own this ERP workspace.'}
+      title={pendingVerification ? 'Verify your email' : mode === 'signin' ? 'Sign in to your account' : 'Create your account'}
+      subtitle={pendingVerification ? 'Enter the code sent to your email address.' : mode === 'signin' ? 'Continue setting up your existing account.' : 'Start with the admin account that will own this ERP workspace.'}
       onContinue={handleContinue}
-      continueLabel={pendingVerification ? 'Verify code' : 'Create account'}
+      continueLabel={pendingVerification ? 'Verify code' : mode === 'signin' ? 'Sign in' : 'Create account'}
       isLoading={loading}
       onBack={pendingVerification ? () => { setPendingVerification(false); setOtpCode(''); setErrors({}); } : goBack}
     >
       {!pendingVerification ? (
         <>
-          <div className="account-name-grid">
+          {mode === 'signup' && <div className="account-name-grid">
             <Input
               label="First name"
               placeholder="Sarah"
@@ -167,7 +182,7 @@ export default function Step1Account() {
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('lastName', e.target.value)}
               error={errors.lastName}
             />
-          </div>
+          </div>}
 
           <Input
             label="Email address"
@@ -182,11 +197,24 @@ export default function Step1Account() {
             label="Password"
             type="password"
             placeholder="Minimum 8 characters"
-            value={data.password}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('password', e.target.value)}
+            value={password}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+              setPassword(e.target.value);
+              setErrors((prev) => ({ ...prev, password: '', submit: '' }));
+            }}
             error={errors.password}
             onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === 'Enter' && handleContinue()}
           />
+          <button
+            type="button"
+            className="btn-link"
+            onClick={() => {
+              setMode((current) => current === 'signup' ? 'signin' : 'signup');
+              setErrors({});
+            }}
+          >
+            {mode === 'signup' ? 'Already have an account? Sign in' : 'Need an account? Create one'}
+          </button>
         </>
       ) : (
         <>
@@ -215,6 +243,7 @@ export default function Step1Account() {
           {errors.submit}
         </div>
       )}
+      {authError && !errors.submit && <div className="form-submit-error">{authError}</div>}
     </StepLayout>
   );
 }

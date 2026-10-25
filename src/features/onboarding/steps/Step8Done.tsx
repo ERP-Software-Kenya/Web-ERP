@@ -8,9 +8,9 @@ const GITHUB_API_LATEST = 'https://api.github.com/repos/ERP-Software-Kenya/ERP-C
 const LATEST_INSTALLER_URL = latestErpClientRelease.assets[0].url;
 
 export default function Step8Done() {
-  const { data } = useOnboarding();
-  const displayName = data.orgName.trim() || 'Your Organization';
-  const firstName = data.firstName.trim() || 'Admin';
+  const { data, backendUser } = useOnboarding();
+  const displayName = backendUser?.organization?.name?.trim() || data.orgName.trim() || 'Your Organization';
+  const firstName = backendUser?.firstName?.trim() || data.firstName.trim() || 'Admin';
 
   const handleDownloadClick = async (e: React.MouseEvent) => {
     e.preventDefault();

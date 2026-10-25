@@ -6,7 +6,7 @@ import { Clerk } from '@clerk/clerk-js';
 const CLERK_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY as string;
 
 export default function SSOCallback() {
-  const { setClerk, setData } = useOnboarding();
+  const { setClerk, setData, refreshAuth } = useOnboarding();
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
@@ -24,20 +24,9 @@ export default function SSOCallback() {
         // Handle the OAuth callback
         await clerk.handleRedirectCallback();
         
-        // Explicitly store the JWT token in localStorage
-        if (clerk.session) {
-          const token = await clerk.session.getToken();
-          if (token) {
-            localStorage.setItem('auth_token', token);
-          }
-        }
-
         if (clerk.user) {
-          // Check if they already have an organization
-          const memberships = await clerk.user.getOrganizationMemberships();
-          const hasMembership = memberships && memberships.data && memberships.data.length > 0;
-          
-          if (hasMembership) {
+          const me = await refreshAuth(clerk);
+          if (me?.isOnboarded) {
             navigate('/onboarding/done');
           } else {
             // Pre-fill user data
