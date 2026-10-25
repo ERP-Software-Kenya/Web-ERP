@@ -127,6 +127,20 @@ export const androidAppRelease = {
   isConfigured: /^https:\/\//i.test(configuredAndroidUrl),
 } as const;
 
+export const androidReleaseManifestUrl = import.meta.env.VITE_ANDROID_RELEASE_MANIFEST_URL?.trim() ?? '';
+
+export interface AndroidReleaseManifest {
+  application: 'erp-app';
+  platform: 'android';
+  channel: string;
+  version: string;
+  buildNumber: string;
+  sizeBytes: number;
+  sha256: string;
+  publishedAt: string;
+  downloadUrl: string;
+}
+
 export interface DownloadFeature {
   icon: LucideIcon;
   title: string;

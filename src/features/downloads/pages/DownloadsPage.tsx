@@ -18,6 +18,8 @@ import {
   downloadableAssetPattern,
   downloadFeatures,
   androidAppRelease,
+  androidReleaseManifestUrl,
+  type AndroidReleaseManifest,
   erpClientReleases,
   githubReleasesApi,
   type ErpClientRelease,
@@ -98,6 +100,42 @@ export default function DownloadsPage() {
   const [releases, setReleases] = useState<ErpClientRelease[]>(erpClientReleases);
   const [loading, setLoading] = useState(true);
   const [usingFallback, setUsingFallback] = useState(false);
+  const [mobileRelease, setMobileRelease] = useState(androidAppRelease);
+
+  useEffect(() => {
+    if (!/^https:\/\//i.test(androidReleaseManifestUrl)) return;
+
+    const controller = new AbortController();
+    fetch(androidReleaseManifestUrl, { signal: controller.signal, cache: 'no-store' })
+      .then((response) => {
+        if (!response.ok) throw new Error(`Release manifest returned ${response.status}`);
+        return response.json() as Promise<AndroidReleaseManifest>;
+      })
+      .then((manifest) => {
+        if (
+          manifest.application !== 'erp-app' ||
+          manifest.platform !== 'android' ||
+          !/^https:\/\//i.test(manifest.downloadUrl) ||
+          !manifest.version ||
+          !manifest.sha256
+        ) return;
+
+        setMobileRelease({
+          version: manifest.version,
+          channel: manifest.channel || 'stable',
+          size: formatBytes(manifest.sizeBytes),
+          updatedAt: new Intl.DateTimeFormat('en', { dateStyle: 'medium' }).format(new Date(manifest.publishedAt)),
+          sha256: manifest.sha256,
+          downloadUrl: manifest.downloadUrl,
+          isConfigured: true,
+        });
+      })
+      .catch((error: unknown) => {
+        if (error instanceof DOMException && error.name === 'AbortError') return;
+      });
+
+    return () => controller.abort();
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -175,14 +213,14 @@ export default function DownloadsPage() {
                       <h2>Pramukh Digital ERP App</h2>
                       <p>For warehouse packers, branch operations, and fleet drivers.</p>
                     </div>
-                    <span className="release-badge">{androidAppRelease.channel}</span>
+                    <span className="release-badge">{mobileRelease.channel}</span>
                   </div>
 
                   <div className="mobile-release-meta" aria-label="Mobile release information">
-                    <span><strong>Version</strong> {androidAppRelease.version}</span>
+                    <span><strong>Version</strong> {mobileRelease.version}</span>
                     <span><strong>Package</strong> Android APK</span>
-                    <span><strong>Size</strong> {androidAppRelease.size}</span>
-                    <span><strong>Updated</strong> {androidAppRelease.updatedAt}</span>
+                    <span><strong>Size</strong> {mobileRelease.size}</span>
+                    <span><strong>Updated</strong> {mobileRelease.updatedAt}</span>
                   </div>
 
                   <ul className="mobile-benefits">
@@ -192,10 +230,10 @@ export default function DownloadsPage() {
                     <li><ShieldCheck size={17} /><span>Secure Clerk sign-in and managed device sessions</span></li>
                   </ul>
 
-                  {androidAppRelease.isConfigured ? (
+                  {mobileRelease.isConfigured ? (
                     <a
                       className="site-button site-button-primary mobile-download-button"
-                      href={androidAppRelease.downloadUrl}
+                      href={mobileRelease.downloadUrl}
                       download
                       rel="noreferrer"
                     >
@@ -209,16 +247,16 @@ export default function DownloadsPage() {
                     </button>
                   )}
 
-                  {!androidAppRelease.isConfigured && (
+                  {!mobileRelease.isConfigured && (
                     <p className="mobile-config-note" role="status">
                       The administrator must configure <code>VITE_ANDROID_APP_DOWNLOAD_URL</code> before deployment.
                     </p>
                   )}
 
-                  {androidAppRelease.sha256 && (
+                  {mobileRelease.sha256 && (
                     <details className="mobile-checksum">
                       <summary>Verify APK checksum</summary>
-                      <code>{androidAppRelease.sha256}</code>
+                      <code>{mobileRelease.sha256}</code>
                     </details>
                   )}
                 </div>

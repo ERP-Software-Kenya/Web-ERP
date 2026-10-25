@@ -9,6 +9,7 @@ interface ImportMetaEnv {
   readonly VITE_ANDROID_APP_SIZE?: string;
   readonly VITE_ANDROID_APP_UPDATED_AT?: string;
   readonly VITE_ANDROID_APP_SHA256?: string;
+  readonly VITE_ANDROID_RELEASE_MANIFEST_URL?: string;
 }
 
 interface ImportMeta {
