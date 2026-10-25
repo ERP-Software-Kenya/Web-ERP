@@ -20,6 +20,24 @@ export type OrganizationOnboardingResult = {
   role: string;
 };
 
+export type MobileReleaseMetadata = {
+  application: 'erp-app';
+  platform: 'android';
+  channel: string;
+  version: string;
+  buildNumber: string;
+  sizeBytes: number;
+  sha256: string;
+  publishedAt: string;
+  gitCommit?: string | null;
+  easBuildId?: string | null;
+};
+
+export type MobileReleaseDownload = {
+  url: string;
+  expiresAt: string;
+};
+
 async function authenticatedRequest<T>(clerk: Clerk, path: string, init: RequestInit = {}): Promise<T> {
   const token = await clerk.session?.getToken({ skipCache: true });
   if (!token) throw new Error('Your Clerk session is not active. Please sign in again.');
@@ -52,4 +70,12 @@ export function onboardOrganization(
     method: 'POST',
     body: JSON.stringify(input),
   });
+}
+
+export function getLatestMobileRelease(clerk: Clerk): Promise<MobileReleaseMetadata> {
+  return authenticatedRequest(clerk, '/api/v1/mobile-releases/latest');
+}
+
+export function createMobileReleaseDownload(clerk: Clerk): Promise<MobileReleaseDownload> {
+  return authenticatedRequest(clerk, '/api/v1/mobile-releases/latest/download', { method: 'POST' });
 }

@@ -11,15 +11,15 @@ import {
   Smartphone,
   WifiOff,
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import MarketingHeader from '../../marketing/components/MarketingHeader';
 import MarketingFooter from '../../marketing/components/MarketingFooter';
+import { useOnboarding } from '../../onboarding/context/OnboardingContext';
+import { createMobileReleaseDownload, getLatestMobileRelease } from '../../auth/services/authApi';
 import {
   downloadableAssetPattern,
   downloadFeatures,
   androidAppRelease,
-  androidReleaseManifestUrl,
-  type AndroidReleaseManifest,
   erpClientReleases,
   githubReleasesApi,
   type ErpClientRelease,
@@ -97,45 +97,56 @@ const mapGithubRelease = (release: GithubRelease, index: number): ErpClientRelea
 };
 
 export default function DownloadsPage() {
+  const navigate = useNavigate();
+  const { clerk, isSignedIn } = useOnboarding();
   const [releases, setReleases] = useState<ErpClientRelease[]>(erpClientReleases);
   const [loading, setLoading] = useState(true);
   const [usingFallback, setUsingFallback] = useState(false);
   const [mobileRelease, setMobileRelease] = useState(androidAppRelease);
+  const [mobileReleaseError, setMobileReleaseError] = useState<string | null>(null);
+  const [downloadingMobile, setDownloadingMobile] = useState(false);
 
   useEffect(() => {
-    if (!/^https:\/\//i.test(androidReleaseManifestUrl)) return;
-
-    const controller = new AbortController();
-    fetch(androidReleaseManifestUrl, { signal: controller.signal, cache: 'no-store' })
-      .then((response) => {
-        if (!response.ok) throw new Error(`Release manifest returned ${response.status}`);
-        return response.json() as Promise<AndroidReleaseManifest>;
-      })
+    if (!isSignedIn || !clerk?.session) {
+      setMobileRelease(androidAppRelease);
+      return;
+    }
+    let active = true;
+    setMobileReleaseError(null);
+    getLatestMobileRelease(clerk)
       .then((manifest) => {
-        if (
-          manifest.application !== 'erp-app' ||
-          manifest.platform !== 'android' ||
-          !/^https:\/\//i.test(manifest.downloadUrl) ||
-          !manifest.version ||
-          !manifest.sha256
-        ) return;
-
+        if (!active) return;
         setMobileRelease({
           version: manifest.version,
           channel: manifest.channel || 'stable',
           size: formatBytes(manifest.sizeBytes),
           updatedAt: new Intl.DateTimeFormat('en', { dateStyle: 'medium' }).format(new Date(manifest.publishedAt)),
           sha256: manifest.sha256,
-          downloadUrl: manifest.downloadUrl,
           isConfigured: true,
         });
       })
       .catch((error: unknown) => {
-        if (error instanceof DOMException && error.name === 'AbortError') return;
+        if (!active) return;
+        setMobileReleaseError(error instanceof Error ? error.message : 'Unable to load the Android release');
       });
+    return () => { active = false; };
+  }, [clerk, isSignedIn]);
 
-    return () => controller.abort();
-  }, []);
+  const downloadMobileApp = async () => {
+    if (!clerk?.session) {
+      navigate('/onboarding/step-1');
+      return;
+    }
+    setDownloadingMobile(true);
+    setMobileReleaseError(null);
+    try {
+      const download = await createMobileReleaseDownload(clerk);
+      window.location.assign(download.url);
+    } catch (error) {
+      setMobileReleaseError(error instanceof Error ? error.message : 'Unable to create the secure download link');
+      setDownloadingMobile(false);
+    }
+  };
 
   useEffect(() => {
     let active = true;
@@ -230,27 +241,18 @@ export default function DownloadsPage() {
                     <li><ShieldCheck size={17} /><span>Secure Clerk sign-in and managed device sessions</span></li>
                   </ul>
 
-                  {mobileRelease.isConfigured ? (
-                    <a
-                      className="site-button site-button-primary mobile-download-button"
-                      href={mobileRelease.downloadUrl}
-                      download
-                      rel="noreferrer"
-                    >
-                      <Download size={19} />
-                      Download Android app
-                    </a>
-                  ) : (
-                    <button className="site-button site-button-primary mobile-download-button" disabled>
-                      <Download size={19} />
-                      Android build coming soon
-                    </button>
-                  )}
+                  <button
+                    className="site-button site-button-primary mobile-download-button"
+                    onClick={() => void downloadMobileApp()}
+                    disabled={downloadingMobile || (isSignedIn && !mobileRelease.isConfigured)}
+                  >
+                    {downloadingMobile ? <RefreshCw size={19} className="release-spin" /> : <Download size={19} />}
+                    {!isSignedIn ? 'Sign in to download' : downloadingMobile ? 'Preparing secure download…' : 'Download Android app'}
+                  </button>
 
-                  {!mobileRelease.isConfigured && (
-                    <p className="mobile-config-note" role="status">
-                      The administrator must configure <code>VITE_ANDROID_APP_DOWNLOAD_URL</code> before deployment.
-                    </p>
+                  {mobileReleaseError && <p className="mobile-config-note" role="alert">{mobileReleaseError}</p>}
+                  {!isSignedIn && (
+                    <p className="mobile-config-note" role="status">Sign in with your ERP account to access the private Android release.</p>
                   )}
 
                   {mobileRelease.sha256 && (

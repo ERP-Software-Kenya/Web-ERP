@@ -115,31 +115,14 @@ export const erpClientReleases: ErpClientRelease[] = [
 
 export const latestErpClientRelease = erpClientReleases[0];
 
-const configuredAndroidUrl = import.meta.env.VITE_ANDROID_APP_DOWNLOAD_URL?.trim() ?? '';
-
 export const androidAppRelease = {
-  version: import.meta.env.VITE_ANDROID_APP_VERSION?.trim() || '1.0.0',
+  version: 'Latest',
   channel: import.meta.env.VITE_MOBILE_RELEASE_CHANNEL?.trim() || 'stable',
-  size: import.meta.env.VITE_ANDROID_APP_SIZE?.trim() || 'Size available after build',
-  updatedAt: import.meta.env.VITE_ANDROID_APP_UPDATED_AT?.trim() || 'Latest approved build',
-  sha256: import.meta.env.VITE_ANDROID_APP_SHA256?.trim() || '',
-  downloadUrl: configuredAndroidUrl,
-  isConfigured: /^https:\/\//i.test(configuredAndroidUrl),
-} as const;
-
-export const androidReleaseManifestUrl = import.meta.env.VITE_ANDROID_RELEASE_MANIFEST_URL?.trim() ?? '';
-
-export interface AndroidReleaseManifest {
-  application: 'erp-app';
-  platform: 'android';
-  channel: string;
-  version: string;
-  buildNumber: string;
-  sizeBytes: number;
-  sha256: string;
-  publishedAt: string;
-  downloadUrl: string;
-}
+  size: 'Sign in to view',
+  updatedAt: 'Latest approved build',
+  sha256: '',
+  isConfigured: false,
+};
 
 export interface DownloadFeature {
   icon: LucideIcon;
