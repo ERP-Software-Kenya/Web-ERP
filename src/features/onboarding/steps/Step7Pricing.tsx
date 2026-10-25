@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useOnboarding } from '../context/OnboardingContext';
 import ThemeToggle from '../../theme/components/ThemeToggle';
 import ProgressBar from '../components/ProgressBar';
+import { onboardOrganization } from '../../auth/services/authApi';
 
 interface Plan {
   id: 'starter' | 'growth' | 'enterprise';
@@ -84,7 +85,7 @@ const TESTIMONIALS = [
 ];
 
 export default function Step7Pricing() {
-  const { data, setData, goNext, goBack, clerk } = useOnboarding();
+  const { data, setData, goNext, goBack, clerk, refreshAuth } = useOnboarding();
   const [billing, setBilling] = useState<'monthly' | 'annual'>(data.billing);
   const [tIdx, setTIdx] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -93,46 +94,39 @@ export default function Step7Pricing() {
   const handleSelect = async (planId: 'starter' | 'growth' | 'enterprise') => {
     setData({ plan: planId, billing });
 
-    if (clerk && data.orgName) {
-      setLoading(true);
-      setError(null);
-      try {
-        const clerkOrg = await clerk.createOrganization({ name: data.orgName });
-        
-        // Ensure the newly created organization is set as active
-        if (clerk.setActive) {
-          await clerk.setActive({ organization: clerkOrg.id });
-        }
+    setLoading(true);
+    setError(null);
+    try {
+      if (!clerk?.session || !data.orgName.trim()) {
+        throw new Error('An authenticated account and organization name are required.');
+      }
 
-        const token = await clerk.session?.getToken();
-        const apiUrl = import.meta.env.VITE_API_BASE_URL || 'https://core-apis-m03n.onrender.com';
-        
-        const response = await fetch(`${apiUrl}/api/v1/auth/organizations`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({
-            name: data.orgName.trim(),
-            slug: clerkOrg.slug || data.orgName.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''),
-            clerkOrgId: clerkOrg.id
-          })
-        });
+      const memberships = await clerk.user?.getOrganizationMemberships();
+      const reusableMembership = memberships?.data.find((membership) =>
+        membership.organization.id === data.clerkOrgId ||
+        membership.organization.name.trim().toLowerCase() === data.orgName.trim().toLowerCase(),
+      );
+      const clerkOrg = reusableMembership?.organization ?? await clerk.createOrganization({ name: data.orgName.trim() });
+      setData({ clerkOrgId: clerkOrg.id });
+      await clerk.setActive({ organization: clerkOrg.id });
 
-        if (!response.ok) {
-          throw new Error('Failed to synchronize organization with backend server.');
-        }
-      } catch (err: any) {
+      const result = await onboardOrganization(clerk, {
+        name: data.orgName.trim(),
+        slug: clerkOrg.slug || data.orgName.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''),
+        clerkOrgId: clerkOrg.id,
+        country: data.country,
+      });
+      if (result.role !== 'org_admin') throw new Error('Workspace was created without the required organization administrator role.');
+      const me = await refreshAuth(clerk);
+      if (!me?.isOnboarded || !me.organization?.id) throw new Error('Workspace verification failed. Please retry.');
+    } catch (err: any) {
         console.error('Failed to create organization:', err);
         const errMsg = err?.errors?.[0]?.longMessage || err?.errors?.[0]?.message || err?.message || 'Failed to create workspace. Please try again.';
         setError(errMsg);
         setLoading(false);
         return;
-      }
-      setLoading(false);
     }
-
+    setLoading(false);
     goNext();
   };
 

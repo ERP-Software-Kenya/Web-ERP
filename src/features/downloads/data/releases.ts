@@ -115,6 +115,15 @@ export const erpClientReleases: ErpClientRelease[] = [
 
 export const latestErpClientRelease = erpClientReleases[0];
 
+export const androidAppRelease = {
+  version: 'Latest',
+  channel: import.meta.env.VITE_MOBILE_RELEASE_CHANNEL?.trim() || 'stable',
+  size: 'Sign in to view',
+  updatedAt: 'Latest approved build',
+  sha256: '',
+  isConfigured: false,
+};
+
 export interface DownloadFeature {
   icon: LucideIcon;
   title: string;

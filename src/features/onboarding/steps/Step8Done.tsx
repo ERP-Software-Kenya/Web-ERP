@@ -8,10 +8,10 @@ const WEB_CLIENT_URL = import.meta.env.VITE_CLIENT_URL
   : 'https://app.pramukhdigital.com';
 
 export default function Step8Done() {
-  const { data } = useOnboarding();
+  const { data, backendUser } = useOnboarding();
   const { version, loading, handleDownload } = useLatestRelease();
-  const displayName = data.orgName.trim() || 'Your Organization';
-  const firstName = data.firstName.trim() || 'Admin';
+  const displayName = backendUser?.organization?.name?.trim() || data.orgName.trim() || 'Your Organization';
+  const firstName = backendUser?.firstName?.trim() || data.firstName.trim() || 'Admin';
 
   const actionCards: { icon: string; iconBg: string; title: string; desc: string }[] = [];
   let primaryCtaText = 'Open Web Dashboard';

@@ -7,7 +7,6 @@ export interface OnboardingData {
   firstName: string;
   lastName: string;
   email: string;
-  password: string;
 
   // Step 2 — Org
   orgName: string;
@@ -29,6 +28,8 @@ export interface OnboardingData {
   // Step 7 — Plan
   plan: 'starter' | 'growth' | 'enterprise' | '';
   billing: 'monthly' | 'annual';
+  /** Safe retry key for a Clerk organization created before backend synchronization. */
+  clerkOrgId?: string;
 }
 
 export interface Plan {
