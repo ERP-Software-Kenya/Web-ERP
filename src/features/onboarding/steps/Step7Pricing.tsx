@@ -81,7 +81,7 @@ const PLANS: Plan[] = [
 
 const TESTIMONIALS = [
   { quote: "The Growth plan pays for itself in the first week. We stopped losing stock to shrinkage and our invoice collection rate went from 70% to 94%.", name: "James Oduya", role: "MD, Oduya Holdings" },
-  { quote: "Web-ERP's Enterprise plan gave us the multi-branch visibility we needed to scale from 2 to 8 locations in 18 months.", name: "Priya Sharma", role: "CFO, Sharma Retail Group" },
+  { quote: "Pramukh Digital's Enterprise plan gave us the multi-branch visibility we needed to scale from 2 to 8 locations in 18 months.", name: "Priya Sharma", role: "CFO, Sharma Retail Group" },
 ];
 
 export default function Step7Pricing() {

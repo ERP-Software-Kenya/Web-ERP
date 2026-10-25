@@ -22,7 +22,7 @@ export default function Dashboard() {
       {/* Sidebar */}
       <aside style={{ width: '260px', background: 'var(--color-surface, #ffffff)', borderRight: '1px solid var(--color-border, #e2e8f0)', display: 'flex', flexDirection: 'column' }}>
         <div style={{ padding: '24px', fontWeight: 'bold', fontSize: '1.25rem', color: 'var(--color-primary, #2563eb)', borderBottom: '1px solid var(--color-border, #e2e8f0)' }}>
-          Web-ERP
+          Pramukh Digital
         </div>
         <nav style={{ flex: 1, padding: '24px 16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <a href="#" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', borderRadius: '8px', background: 'var(--color-primary-light, #eff6ff)', color: 'var(--color-primary, #2563eb)', textDecoration: 'none', fontWeight: 500 }}>

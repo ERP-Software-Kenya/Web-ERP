@@ -1,18 +1,21 @@
-import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { AnimatePresence, motion } from 'framer-motion';
-import { Download, Menu, X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Menu, X, Download } from 'lucide-react';
 import { useOnboarding } from '../../onboarding/context/OnboardingContext';
+import { useLatestRelease } from '../../shared/hooks/useLatestRelease';
 
 interface Props {
   onScrollTo?: (id: string) => void;
 }
 
 const navItems = [
-  { label: 'Platform', id: 'platform' },
-  { label: 'Modules', id: 'modules' },
-  { label: 'Operations', id: 'operations' },
-  { label: 'Pricing', id: 'pricing' },
+  { label: 'Modules', id: 'modules', type: 'scroll' },
+  { label: 'Features', id: 'features', type: 'scroll' },
+  { label: 'How It Works', id: 'how-it-works', type: 'scroll' },
+  { label: 'FAQ', id: 'faq', type: 'scroll' },
+  { label: 'Pricing', id: 'pricing', type: 'scroll' },
+  { label: 'Downloads', id: '/downloads', type: 'link' },
 ];
 
 export default function MarketingHeader({ onScrollTo }: Props) {
@@ -20,76 +23,87 @@ export default function MarketingHeader({ onScrollTo }: Props) {
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { version, loading, handleDownload } = useLatestRelease();
 
   useEffect(() => {
     const shell = document.querySelector('.lp-shell');
     const target = shell ?? window;
-
     const handleScroll = () => {
       const y = shell ? shell.scrollTop : window.scrollY;
       setScrolled(y > 20);
     };
-
     target.addEventListener('scroll', handleScroll, { passive: true });
     return () => target.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const handleNav = (id: string) => {
-    if (onScrollTo) {
-      onScrollTo(id);
+  const handleNav = (item: typeof navItems[0]) => {
+    if (item.type === 'link') {
+      navigate(item.id);
     } else {
-      navigate(`/#${id}`);
+      onScrollTo?.(item.id);
     }
     setMobileOpen(false);
   };
 
-  const handleStart = () => {
-    goNext();
-    setMobileOpen(false);
-  };
+  const versionLabel = loading
+    ? 'Download'
+    : version && version !== 'Latest'
+      ? `Download ${version}`
+      : 'Download';
 
   return (
     <header className={`lp-header${scrolled ? ' scrolled' : ''}`}>
       <div className="lp-header-inner">
-        <Link className="lp-header-logo" to="/">
+        {/* Logo */}
+        <motion.div
+          className="lp-header-logo"
+          style={{ cursor: 'pointer' }}
+          onClick={() => navigate('/')}
+          initial={{ opacity: 0, x: -16 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.4 }}
+        >
           <div className="lp-logo-icon">P</div>
           <span>Pramukh Digital</span>
-        </Link>
+        </motion.div>
 
+        {/* Desktop Nav */}
         <nav className="lp-header-nav" aria-label="Main navigation">
           {navItems.map((item, i) => (
             <motion.button
               key={item.id}
               className="lp-nav-link"
-              onClick={() => handleNav(item.id)}
+              onClick={() => handleNav(item)}
               initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.08 + i * 0.04 }}
+              transition={{ delay: 0.1 + i * 0.05 }}
             >
               {item.label}
             </motion.button>
           ))}
-          <Link className="lp-nav-link lp-nav-link-anchor" to="/downloads">
-            Downloads
-          </Link>
         </nav>
 
+        {/* Actions */}
         <motion.div
           className="lp-header-actions"
           initial={{ opacity: 0, x: 16 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.35 }}
+          transition={{ duration: 0.4 }}
         >
-          <Link className="lp-btn-download-sm" to="/downloads">
-            <Download size={16} />
-            <span>Download apps</span>
-          </Link>
-          <button className="lp-btn-cta-sm" onClick={handleStart}>
-            Start trial
+          <button
+            className="lp-btn-download-nav"
+            onClick={handleDownload}
+            title="Download latest desktop release"
+          >
+            <Download size={14} />
+            {versionLabel}
+          </button>
+          <button className="lp-btn-cta-sm" onClick={goNext}>
+            Start Free
           </button>
           <button
             className="lp-hamburger"
-            onClick={() => setMobileOpen((open) => !open)}
+            onClick={() => setMobileOpen((o) => !o)}
             aria-label="Toggle menu"
             aria-expanded={mobileOpen}
           >
@@ -98,6 +112,7 @@ export default function MarketingHeader({ onScrollTo }: Props) {
         </motion.div>
       </div>
 
+      {/* Mobile Menu */}
       <AnimatePresence>
         {mobileOpen && (
           <motion.div
@@ -105,27 +120,28 @@ export default function MarketingHeader({ onScrollTo }: Props) {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.2, ease: 'easeInOut' }}
+            transition={{ duration: 0.25, ease: 'easeInOut' }}
           >
             {navItems.map((item) => (
               <button
                 key={item.id}
                 className="lp-mobile-nav-link"
-                onClick={() => handleNav(item.id)}
+                onClick={() => handleNav(item)}
               >
                 {item.label}
               </button>
             ))}
-            <Link className="lp-mobile-nav-link" to="/downloads" onClick={() => setMobileOpen(false)}>
-              Downloads
-            </Link>
             <div className="lp-mobile-actions">
-              <Link className="lp-btn-download-sm" to="/downloads" onClick={() => setMobileOpen(false)}>
-                <Download size={16} />
-                Download apps
-              </Link>
-              <button className="lp-btn-cta-sm" onClick={handleStart}>
-                Start trial
+              <button
+                className="lp-btn-download-nav"
+                style={{ display: 'inline-flex' }}
+                onClick={() => { handleDownload(); setMobileOpen(false); }}
+              >
+                <Download size={14} />
+                {versionLabel}
+              </button>
+              <button className="lp-btn-cta-sm" onClick={() => { goNext(); setMobileOpen(false); }}>
+                Start Free
               </button>
             </div>
           </motion.div>
