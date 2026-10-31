@@ -1,6 +1,6 @@
 import type { Clerk } from '@clerk/clerk-js';
 
-const API_URL = (import.meta.env.VITE_API_BASE_URL || 'https://core-apis-m03n.onrender.com').replace(/\/$/, '');
+const API_URL = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
 
 export type BackendMe = {
   id: string | null;
