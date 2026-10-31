@@ -114,7 +114,16 @@ export default function Step7Pricing() {
         name: data.orgName.trim(),
         slug: clerkOrg.slug || data.orgName.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''),
         clerkOrgId: clerkOrg.id,
-        country: data.country,
+        country: data.country || undefined,
+        industry: data.industry || undefined,
+        businessType: data.businessType || undefined,
+        teamSize: data.teamSize || undefined,
+        modules: data.modules.length ? data.modules : undefined,
+        salesMethod: data.salesMethod || undefined,
+        taxId: data.taxId || undefined,
+        baseCurrencyCode: data.baseCurrencyCode || undefined,
+        timeZone: data.timeZone || undefined,
+        fiscalYearStartMonth: data.fiscalYearStartMonth || undefined,
       });
       if (result.role !== 'org_admin') throw new Error('Workspace was created without the required organization administrator role.');
       const me = await refreshAuth(clerk);

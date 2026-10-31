@@ -12,6 +12,10 @@ export interface OnboardingData {
   orgName: string;
   industry: string;
   country: string;
+  taxId: string;
+  baseCurrencyCode: string;
+  timeZone: string;
+  fiscalYearStartMonth: number;
 
   // Step 3 — Business type
   businessType: BusinessType;

@@ -62,13 +62,36 @@ export async function synchronizeUser(clerk: Clerk): Promise<BackendMe> {
   return authenticatedRequest<BackendMe>(clerk, '/api/v1/auth/me');
 }
 
+interface OnboardOrganizationInput {
+  name: string;
+  slug: string;
+  clerkOrgId: string;
+  country?: string;
+  industry?: string;
+  businessType?: string;
+  teamSize?: string;
+  modules?: string[];
+  salesMethod?: string;
+  taxId?: string;
+  baseCurrencyCode?: string;
+  timeZone?: string;
+  fiscalYearStartMonth?: number;
+}
+
 export function onboardOrganization(
   clerk: Clerk,
-  input: { name: string; slug: string; clerkOrgId: string; country?: string },
+  input: OnboardOrganizationInput,
 ): Promise<OrganizationOnboardingResult> {
+  // Filter out empty strings — send undefined instead
+  const body: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(input)) {
+    if (value === '' || value === undefined) continue;
+    if (Array.isArray(value) && value.length === 0) continue;
+    body[key] = value;
+  }
   return authenticatedRequest(clerk, '/api/v1/auth/organizations', {
     method: 'POST',
-    body: JSON.stringify(input),
+    body: JSON.stringify(body),
   });
 }
 
