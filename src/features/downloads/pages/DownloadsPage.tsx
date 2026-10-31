@@ -11,10 +11,9 @@ import {
   Smartphone,
   WifiOff,
 } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import MarketingHeader from '../../marketing/components/MarketingHeader';
 import MarketingFooter from '../../marketing/components/MarketingFooter';
-import { useOnboarding } from '../../onboarding/context/OnboardingContext';
 import { createMobileReleaseDownload, getLatestMobileRelease } from '../../auth/services/authApi';
 import {
   downloadableAssetPattern,
@@ -97,8 +96,6 @@ const mapGithubRelease = (release: GithubRelease, index: number): ErpClientRelea
 };
 
 export default function DownloadsPage() {
-  const navigate = useNavigate();
-  const { clerk, isSignedIn } = useOnboarding();
   const [releases, setReleases] = useState<ErpClientRelease[]>(erpClientReleases);
   const [loading, setLoading] = useState(true);
   const [usingFallback, setUsingFallback] = useState(false);
@@ -107,13 +104,9 @@ export default function DownloadsPage() {
   const [downloadingMobile, setDownloadingMobile] = useState(false);
 
   useEffect(() => {
-    if (!isSignedIn || !clerk?.session) {
-      setMobileRelease(androidAppRelease);
-      return;
-    }
     let active = true;
     setMobileReleaseError(null);
-    getLatestMobileRelease(clerk)
+    getLatestMobileRelease()
       .then((manifest) => {
         if (!active) return;
         setMobileRelease({
@@ -130,17 +123,13 @@ export default function DownloadsPage() {
         setMobileReleaseError(error instanceof Error ? error.message : 'Unable to load the Android release');
       });
     return () => { active = false; };
-  }, [clerk, isSignedIn]);
+  }, []);
 
   const downloadMobileApp = async () => {
-    if (!clerk?.session) {
-      navigate('/onboarding/step-1');
-      return;
-    }
     setDownloadingMobile(true);
     setMobileReleaseError(null);
     try {
-      const download = await createMobileReleaseDownload(clerk);
+      const download = await createMobileReleaseDownload();
       window.location.assign(download.url);
     } catch (error) {
       setMobileReleaseError(error instanceof Error ? error.message : 'Unable to create the secure download link');
@@ -244,16 +233,13 @@ export default function DownloadsPage() {
                   <button
                     className="site-button site-button-primary mobile-download-button"
                     onClick={() => void downloadMobileApp()}
-                    disabled={downloadingMobile || (isSignedIn && !mobileRelease.isConfigured)}
+                    disabled={downloadingMobile || !mobileRelease.isConfigured}
                   >
                     {downloadingMobile ? <RefreshCw size={19} className="release-spin" /> : <Download size={19} />}
-                    {!isSignedIn ? 'Sign in to download' : downloadingMobile ? 'Preparing secure download…' : 'Download Android app'}
+                    {downloadingMobile ? 'Preparing download…' : 'Download Android app'}
                   </button>
 
                   {mobileReleaseError && <p className="mobile-config-note" role="alert">{mobileReleaseError}</p>}
-                  {!isSignedIn && (
-                    <p className="mobile-config-note" role="status">Sign in with your ERP account to access the private Android release.</p>
-                  )}
 
                   {mobileRelease.sha256 && (
                     <details className="mobile-checksum">
