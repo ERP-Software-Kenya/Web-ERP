@@ -72,10 +72,25 @@ export function onboardOrganization(
   });
 }
 
-export function getLatestMobileRelease(clerk: Clerk): Promise<MobileReleaseMetadata> {
-  return authenticatedRequest(clerk, '/api/v1/mobile-releases/latest');
+export async function getLatestMobileRelease(): Promise<MobileReleaseMetadata> {
+  const response = await fetch(`${API_URL}/api/v1/mobile-releases/latest`, {
+    headers: { 'Content-Type': 'application/json' },
+  });
+  if (!response.ok) {
+    const body = await response.json().catch(() => undefined) as { message?: string } | undefined;
+    throw new Error(body?.message || `Server request failed (${response.status})`);
+  }
+  return response.json() as Promise<MobileReleaseMetadata>;
 }
 
-export function createMobileReleaseDownload(clerk: Clerk): Promise<MobileReleaseDownload> {
-  return authenticatedRequest(clerk, '/api/v1/mobile-releases/latest/download', { method: 'POST' });
+export async function createMobileReleaseDownload(): Promise<MobileReleaseDownload> {
+  const response = await fetch(`${API_URL}/api/v1/mobile-releases/latest/download`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+  });
+  if (!response.ok) {
+    const body = await response.json().catch(() => undefined) as { message?: string } | undefined;
+    throw new Error(body?.message || `Server request failed (${response.status})`);
+  }
+  return response.json() as Promise<MobileReleaseDownload>;
 }
