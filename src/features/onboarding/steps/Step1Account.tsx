@@ -150,7 +150,7 @@ export default function Step1Account() {
         throw new Error('Clerk is not available. Please reload and try again.');
       }
 
-      let verification: { status: string; createdSessionId: string | null };
+      let verification: { status: string | null; createdSessionId: string | null };
 
       if (verificationKind === 'signin') {
         if (verificationStrategy === 'first_factor') {
