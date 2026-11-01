@@ -7,10 +7,12 @@ export default function Step1Account() {
   const { data, setData, goNext, goBack, goTo, clerk, isClerkLoaded, refreshAuth, authError } = useOnboarding();
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<'signup' | 'signin'>('signup');
+  const [authMethod, setAuthMethod] = useState<'password' | 'otp'>('password');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [pendingVerification, setPendingVerification] = useState(false);
   const [verificationKind, setVerificationKind] = useState<'signup' | 'signin'>('signup');
+  const [verificationStrategy, setVerificationStrategy] = useState<'first_factor' | 'second_factor'>('second_factor');
   const [otpCode, setOtpCode] = useState('');
 
   const validate = () => {
@@ -19,7 +21,7 @@ export default function Step1Account() {
     if (mode === 'signup' && !data.firstName.trim()) nextErrors.firstName = 'First name is required';
     if (mode === 'signup' && !data.lastName.trim()) nextErrors.lastName = 'Last name is required';
     if (!data.email.trim() || !data.email.includes('@')) nextErrors.email = 'Valid email is required';
-    if (password.length < 8) nextErrors.password = 'Password must be at least 8 characters';
+    if (authMethod === 'password' && password.length < 8) nextErrors.password = 'Password must be at least 8 characters';
 
     return nextErrors;
   };
@@ -58,6 +60,16 @@ export default function Step1Account() {
       }
 
       if (mode === 'signin') {
+        if (authMethod === 'otp') {
+          // OTP sign-in path
+          await clerk.client.signIn.create({ strategy: 'email_code', identifier: data.email.trim() });
+          setVerificationKind('signin');
+          setVerificationStrategy('first_factor');
+          setPendingVerification(true);
+          return;
+        }
+
+        // Password sign-in path (unchanged)
         const signIn = await clerk.client.signIn.create({ identifier: data.email.trim(), password });
         if (signIn.status === 'complete') {
           await handleAuthSuccess(signIn.createdSessionId);
@@ -68,12 +80,34 @@ export default function Step1Account() {
           if (!emailFactor?.emailAddressId) throw new Error('No supported email verification method is available.');
           await signIn.prepareSecondFactor({ strategy: 'email_code', emailAddressId: emailFactor.emailAddressId });
           setVerificationKind('signin');
+          setVerificationStrategy('second_factor');
           setPendingVerification(true);
           return;
         }
         throw new Error(`Additional authentication is required (${signIn.status}).`);
       }
 
+      if (authMethod === 'otp') {
+        // OTP sign-up path
+        const signUp = await clerk.client.signUp.create({
+          firstName: data.firstName.trim(),
+          lastName: data.lastName.trim(),
+          emailAddress: data.email.trim(),
+        });
+
+        if (signUp.status === 'complete') {
+          await handleAuthSuccess(signUp.createdSessionId);
+        } else if (signUp.unverifiedFields.includes('email_address')) {
+          await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
+          setVerificationKind('signup');
+          setPendingVerification(true);
+        } else {
+          setErrors({ submit: `Account creation incomplete. Status: ${signUp.status}` });
+        }
+        return;
+      }
+
+      // Password sign-up path (unchanged)
       const baseUsername = data.email.trim().split('@')[0].replace(/[^a-zA-Z0-9_-]/g, '');
       const randomSuffix = Math.floor(Math.random() * 10000);
       const signUp = await clerk.client.signUp.create({
@@ -116,9 +150,17 @@ export default function Step1Account() {
         throw new Error('Clerk is not available. Please reload and try again.');
       }
 
-      const verification = verificationKind === 'signin'
-        ? await clerk.client.signIn.attemptSecondFactor({ strategy: 'email_code', code: otpCode.trim() })
-        : await clerk.client.signUp.attemptEmailAddressVerification({ code: otpCode.trim() });
+      let verification: { status: string; createdSessionId: string | null };
+
+      if (verificationKind === 'signin') {
+        if (verificationStrategy === 'first_factor') {
+          verification = await clerk.client.signIn.attemptFirstFactor({ strategy: 'email_code', code: otpCode.trim() });
+        } else {
+          verification = await clerk.client.signIn.attemptSecondFactor({ strategy: 'email_code', code: otpCode.trim() });
+        }
+      } else {
+        verification = await clerk.client.signUp.attemptEmailAddressVerification({ code: otpCode.trim() });
+      }
 
       if (verification.status === 'complete') {
         await handleAuthSuccess(verification.createdSessionId);
@@ -184,6 +226,23 @@ export default function Step1Account() {
             />
           </div>}
 
+          <div className="auth-method-toggle">
+            <button
+              type="button"
+              className={`auth-method-tab${authMethod === 'password' ? ' auth-method-tab--active' : ''}`}
+              onClick={() => { setAuthMethod('password'); setErrors({}); }}
+            >
+              Password
+            </button>
+            <button
+              type="button"
+              className={`auth-method-tab${authMethod === 'otp' ? ' auth-method-tab--active' : ''}`}
+              onClick={() => { setAuthMethod('otp'); setErrors({}); }}
+            >
+              OTP
+            </button>
+          </div>
+
           <Input
             label="Email address"
             type="email"
@@ -193,23 +252,26 @@ export default function Step1Account() {
             error={errors.email}
           />
 
-          <Input
-            label="Password"
-            type="password"
-            placeholder="Minimum 8 characters"
-            value={password}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-              setPassword(e.target.value);
-              setErrors((prev) => ({ ...prev, password: '', submit: '' }));
-            }}
-            error={errors.password}
-            onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === 'Enter' && handleContinue()}
-          />
+          {authMethod === 'password' && (
+            <Input
+              label="Password"
+              type="password"
+              placeholder="Minimum 8 characters"
+              value={password}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                setPassword(e.target.value);
+                setErrors((prev) => ({ ...prev, password: '', submit: '' }));
+              }}
+              error={errors.password}
+              onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === 'Enter' && handleContinue()}
+            />
+          )}
           <button
             type="button"
             className="btn-link"
             onClick={() => {
               setMode((current) => current === 'signup' ? 'signin' : 'signup');
+              setAuthMethod('password');
               setErrors({});
             }}
           >
