@@ -18,8 +18,6 @@ export default function Step1Account() {
   const validate = () => {
     const nextErrors: Record<string, string> = {};
 
-    if (mode === 'signup' && !data.firstName.trim()) nextErrors.firstName = 'First name is required';
-    if (mode === 'signup' && !data.lastName.trim()) nextErrors.lastName = 'Last name is required';
     if (!data.email.trim() || !data.email.includes('@')) nextErrors.email = 'Valid email is required';
     if (authMethod === 'password' && password.length < 8) nextErrors.password = 'Password must be at least 8 characters';
 
@@ -90,8 +88,6 @@ export default function Step1Account() {
       if (authMethod === 'otp') {
         // OTP sign-up path
         const signUp = await clerk.client.signUp.create({
-          firstName: data.firstName.trim(),
-          lastName: data.lastName.trim(),
           emailAddress: data.email.trim(),
         });
 
@@ -108,13 +104,8 @@ export default function Step1Account() {
       }
 
       // Password sign-up path (unchanged)
-      const baseUsername = data.email.trim().split('@')[0].replace(/[^a-zA-Z0-9_-]/g, '');
-      const randomSuffix = Math.floor(Math.random() * 10000);
       const signUp = await clerk.client.signUp.create({
-        firstName: data.firstName.trim(),
-        lastName: data.lastName.trim(),
         emailAddress: data.email.trim(),
-        username: `${baseUsername}${randomSuffix}`,
         password,
       });
 
@@ -209,23 +200,6 @@ export default function Step1Account() {
     >
       {!pendingVerification ? (
         <>
-          {mode === 'signup' && <div className="account-name-grid">
-            <Input
-              label="First name"
-              placeholder="Sarah"
-              value={data.firstName}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('firstName', e.target.value)}
-              error={errors.firstName}
-            />
-            <Input
-              label="Last name"
-              placeholder="Jenkins"
-              value={data.lastName}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleChange('lastName', e.target.value)}
-              error={errors.lastName}
-            />
-          </div>}
-
           <div className="auth-method-toggle">
             <button
               type="button"
