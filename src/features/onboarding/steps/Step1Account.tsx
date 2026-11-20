@@ -85,10 +85,17 @@ export default function Step1Account() {
         throw new Error(`Additional authentication is required (${signIn.status}).`);
       }
 
+      const emailPrefix = data.email.trim().split('@')[0];
+      const nameDefaults = {
+        firstName: data.firstName || emailPrefix,
+        ...(data.lastName ? { lastName: data.lastName } : {}),
+      };
+
       if (authMethod === 'otp') {
         // OTP sign-up path
         const signUp = await clerk.client.signUp.create({
           emailAddress: data.email.trim(),
+          ...nameDefaults,
         });
 
         if (signUp.status === 'complete') {
@@ -103,10 +110,11 @@ export default function Step1Account() {
         return;
       }
 
-      // Password sign-up path (unchanged)
+      // Password sign-up path
       const signUp = await clerk.client.signUp.create({
         emailAddress: data.email.trim(),
         password,
+        ...nameDefaults,
       });
 
       if (signUp.status === 'complete') {
@@ -155,6 +163,30 @@ export default function Step1Account() {
 
       if (verification.status === 'complete') {
         await handleAuthSuccess(verification.createdSessionId);
+      } else if (verification.status === 'missing_requirements' && verificationKind === 'signup') {
+        const pendingSignUp = clerk.client.signUp as any;
+        const missing: string[] = pendingSignUp.missingFields ?? [];
+
+        if (missing.includes('password')) {
+          setErrors({ submit: 'A password is required. Please go back and use the Password method.' });
+          return;
+        }
+
+        const autoFillable = missing.filter((f: string) => ['first_name', 'last_name', 'username'].includes(f));
+        if (autoFillable.length > 0 && autoFillable.length === missing.length) {
+          const prefix = data.email.split('@')[0];
+          const updates: Record<string, string> = {};
+          if (autoFillable.includes('first_name')) updates.firstName = data.firstName || prefix;
+          if (autoFillable.includes('last_name')) updates.lastName = data.lastName || 'Admin';
+          if (autoFillable.includes('username')) updates.username = prefix;
+          const completed = await pendingSignUp.update(updates);
+          if (completed.status === 'complete') {
+            await handleAuthSuccess(completed.createdSessionId);
+            return;
+          }
+        }
+
+        setErrors({ submit: `Account setup requires additional information: ${missing.join(', ')}.` });
       } else {
         setErrors({ submit: `Verification failed. Status: ${verification.status}` });
       }
